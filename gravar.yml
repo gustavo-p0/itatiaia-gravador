@@ -30,8 +30,7 @@ jobs:
           cat > ~/.config/rclone/rclone.conf << EOF
           [gdrive]
           type = drive
-          client_id = ${{ secrets.GDRIVE_CLIENT_ID }}
-          client_secret = ${{ secrets.GDRIVE_CLIENT_SECRET }}
+          scope = drive
           token = ${{ secrets.GDRIVE_TOKEN }}
           EOF
 
