@@ -1,0 +1,46 @@
+name: Gravar Rádio Itatiaia
+
+on:
+  schedule:
+    # 03:00 UTC = 00:00 BRT (Belo Horizonte, UTC-3)
+    - cron: '0 3 * * *'
+  workflow_dispatch: # permite rodar manualmente pelo GitHub
+
+jobs:
+  gravar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 260 # 4h20min de limite (folga para o upload)
+
+    steps:
+      - name: Instalar ffmpeg
+        run: sudo apt-get install -y ffmpeg
+
+      - name: Gravar stream por 4 horas
+        run: |
+          DATA=$(TZ="America/Sao_Paulo" date +%Y-%m-%d)
+          ffmpeg \
+            -i "https://8903.brasilstream.com.br/stream" \
+            -t 14400 \
+            -c copy \
+            "itatiaia_${DATA}.mp3"
+
+      - name: Autenticar no Google Drive via rclone
+        run: |
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf << EOF
+          [gdrive]
+          type = drive
+          client_id = ${{ secrets.GDRIVE_CLIENT_ID }}
+          client_secret = ${{ secrets.GDRIVE_CLIENT_SECRET }}
+          token = ${{ secrets.GDRIVE_TOKEN }}
+          EOF
+
+      - name: Instalar rclone
+        run: |
+          curl https://rclone.org/install.sh | sudo bash
+
+      - name: Fazer upload para o Google Drive
+        run: |
+          DATA=$(TZ="America/Sao_Paulo" date +%Y-%m-%d)
+          rclone copy "itatiaia_${DATA}.mp3" "gdrive:Itatiaia" --drive-use-trash=false
+          echo "✅ Upload concluído: itatiaia_${DATA}.mp3"
