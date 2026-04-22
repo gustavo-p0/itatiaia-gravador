@@ -1,10 +1,9 @@
 name: Gravar Rádio Itatiaia
 
 on:
-  schedule:
-    # 03:00 UTC = 00:00 BRT (Belo Horizonte, UTC-3)
-    - cron: '0 3 * * *'
-  workflow_dispatch: # permite rodar manualmente pelo GitHub
+  workflow_dispatch:
+  repository_dispatch:
+    types: [gravar]
 
 jobs:
   gravar:
