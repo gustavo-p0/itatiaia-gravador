@@ -1,6 +1,3 @@
-
-Copiar
-
 #!/bin/bash
 # =============================================================
 # Script para reverter tudo da configuração do gravador Itatiaia
