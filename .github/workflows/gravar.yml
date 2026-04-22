@@ -20,7 +20,7 @@ jobs:
           DATA=$(TZ="America/Sao_Paulo" date +%Y-%m-%d)
           ffmpeg \
             -i "https://8903.brasilstream.com.br/stream" \
-            -t 14400 \
+            -t 60 \
             -c copy \
             "itatiaia_${DATA}.aac"
 
