@@ -21,7 +21,7 @@ jobs:
           ffmpeg \
             -i "https://8903.brasilstream.com.br/stream" \
             -t 14400 \
-            -c copy \
+            -acodec libmp3lame -ab 128k \
             "itatiaia_${DATA}.mp3"
 
       - name: Autenticar no Google Drive via rclone
