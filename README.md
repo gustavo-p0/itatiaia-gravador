@@ -1,4 +1,4 @@
-# 📻 Gravador Automático — Rádio Itatiaia
+# Gravador Automático — Rádio Itatiaia
 
 Grava automaticamente 4 horas da Rádio Itatiaia (00h–04h BRT) todo dia e salva no Google Drive.
 
