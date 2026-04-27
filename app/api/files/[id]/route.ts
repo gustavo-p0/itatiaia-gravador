@@ -2,14 +2,20 @@ import { NextResponse } from "next/server";
 import { google } from "googleapis";
 
 function getServiceAccountAuth() {
-  const credsStr = process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '{}';
+  const credsStr = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+  if (!credsStr) {
+    console.error('GOOGLE_SERVICE_ACCOUNT_KEY not set');
+    return null;
+  }
   let creds;
   try {
     creds = JSON.parse(credsStr);
   } catch (e) {
+    console.error('Failed to parse credentials:', e);
     return null;
   }
   if (!creds.client_email || !creds.private_key) {
+    console.error('Missing client_email or private_key');
     return null;
   }
   return new google.auth.GoogleAuth({
@@ -26,7 +32,7 @@ export async function GET(
     const { id } = await params;
     const auth = getServiceAccountAuth();
     if (!auth) {
-      return NextResponse.json({ error: 'Invalid credentials config' }, { status: 500 });
+      return NextResponse.json({ error: 'Credentials not configured' }, { status: 500 });
     }
 
     const drive = google.drive({ version: 'v3', auth });
