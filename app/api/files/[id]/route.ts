@@ -45,26 +45,32 @@ export async function GET(
       return NextResponse.json({ error: 'No access token' }, { status: 401 });
     }
 
-    const headers = new Headers();
-    headers.set('Content-Type', 'audio/mp4');
-    headers.set('Content-Disposition', `inline; filename="${name}"`);
-    headers.set('Accept-Ranges', 'bytes');
-    headers.set('Content-Length', String(fileSize));
+    const rangeHeader = request.headers.get('range') ?? 'bytes=0-';
 
-    const response = await fetch(
+    const driveRes = await fetch(
       `https://www.googleapis.com/drive/v3/files/${id}?alt=media`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
+          Range: rangeHeader,
         },
       }
     );
 
-    if (!response.ok) {
-      return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
-    }
+    const headers = new Headers();
+    headers.set('Content-Type', driveRes.headers.get('Content-Type') ?? 'audio/aac');
+    headers.set('Accept-Ranges', 'bytes');
 
-    return new NextResponse(response.body, { headers });
+    const contentRange = driveRes.headers.get('Content-Range');
+    if (contentRange) headers.set('Content-Range', contentRange);
+
+    const contentLength = driveRes.headers.get('Content-Length');
+    if (contentLength) headers.set('Content-Length', contentLength);
+
+    return new NextResponse(driveRes.body, {
+      status: driveRes.status,
+      headers,
+    });
   } catch (error: any) {
     console.error('Error getting file:', error);
     return NextResponse.json({ error: error.message || 'Failed to get file' }, { status: 500 });
