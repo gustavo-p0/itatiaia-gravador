@@ -36,24 +36,17 @@ export default function HomePage() {
     fetchFiles();
   }, [fetchFiles]);
 
-  useEffect(() => {
+useEffect(() => {
     if (files.length > 0 && !currentFile) {
       setCurrentFile(files[0]);
     }
   }, [files, currentFile]);
 
-  const fetchAudioUrl = useCallback(async (fileId: string) => {
-    setAudioUrl(null);
-    try {
-      const res = await fetch(`${API_BASE}/api/files/${fileId}`);
-      const data = await res.json();
-      if (data.url) {
-        setAudioUrl(data.url);
-      }
-    } catch (err) {
-      console.error("Failed to fetch audio URL:", err);
-    }
-  }, []);
+  useEffect(() => {
+    return () => {
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+    };
+  }, [audioUrl]);
 
   useEffect(() => {
     if (currentFile) {
