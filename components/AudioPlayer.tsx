@@ -146,17 +146,17 @@ export default function AudioPlayer({
   }, [onClear, src]);
 
 return (
-    <div className="flex flex-col gap-3 w-full max-w-md">
+    <div className="flex flex-col gap-3 w-full">
       <audio ref={audioRef} preload="metadata" />
 
       {error && (
-        <div className="text-center text-red-400 text-xs py-2 bg-red-500/10 rounded-lg">
+        <div className="text-center text-xs py-2 rounded" style={{ backgroundColor: '#451a03', color: '#fca5a5' }}>
           {error}
         </div>
       )}
 
       <div className="flex items-center gap-2">
-        <span className="text-xs text-slate-400 font-mono w-10 shrink-0">{formatDuration(currentTime)}</span>
+        <span className="text-xs font-mono w-10 shrink-0" style={{ color: '#92400e' }}>{formatDuration(currentTime)}</span>
         <input
           type="range"
           min={0}
@@ -165,21 +165,24 @@ return (
           value={currentTime}
           onChange={handleSeek}
           disabled={!src}
-          className="flex-1 h-2 appearance-none bg-white/10 rounded-full cursor-pointer touch-manipulation disabled:cursor-not-allowed"
+          className="flex-1 h-2 appearance-none rounded-full cursor-pointer touch-manipulation disabled:cursor-not-allowed"
           style={{
-            background: `linear-gradient(to right, rgb(99, 102, 241) ${duration ? (currentTime / duration) * 100 : 0}%, rgba(255,255,255,0.2) ${duration ? (currentTime / duration) * 100 : 0}%)`
+            background: `linear-gradient(to right, #b45309 ${duration ? (currentTime / duration) * 100 : 0}%, #3d2b1f ${duration ? (currentTime / duration) * 100 : 0}%)`
           }}
         />
-        <span className="text-xs text-slate-400 font-mono w-10 shrink-0 text-right">{formatDuration(duration || 0)}</span>
+        <span className="text-xs font-mono w-10 shrink-0 text-right" style={{ color: '#92400e' }}>{formatDuration(duration || 0)}</span>
       </div>
 
-      <div className="flex items-center justify-center gap-1 min-w-0">
+      <div className="flex items-center justify-center gap-1">
         <button
           onClick={onPrev}
           disabled={!hasPrev}
-          className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center transition-all ${
-            hasPrev ? "bg-white/10 hover:bg-white/20 text-white" : "bg-white/5 text-white/30 cursor-not-allowed"
-          }`}
+          className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center transition-all"
+          style={{
+            backgroundColor: hasPrev ? '#3d2b1f' : '#2d1f14',
+            border: '1px solid #4a3728',
+            color: hasPrev ? '#b45309' : '#4a3728'
+          }}
         >
           <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
             <path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z" />
@@ -189,9 +192,12 @@ return (
         <button
           onClick={skipBack}
           disabled={!src}
-          className={`w-12 h-8 shrink-0 rounded-full flex items-center justify-center transition-all text-xs font-bold ${
-            src ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-white/5 text-white/30 cursor-not-allowed"
-          }`}
+          className="w-10 h-8 shrink-0 rounded flex items-center justify-center text-xs font-bold"
+          style={{
+            backgroundColor: '#2d1f14',
+            border: '1px solid #4a3728',
+            color: src ? '#92400e' : '#4a3728'
+          }}
         >
           <span>-{SKIP_SECONDS}</span>
         </button>
@@ -199,14 +205,15 @@ return (
         <button
           onClick={togglePlay}
           disabled={!src}
-          className={`w-12 h-12 shrink-0 rounded-full flex items-center justify-center transition-all ${
-            src
-              ? "bg-gradient-to-r from-indigo-500 to-violet-500 active:scale-95"
-              : "bg-white/10 text-white/30 cursor-not-allowed"
-          }`}
+          className="w-12 h-12 shrink-0 rounded-full flex items-center justify-center transition-all"
+          style={{
+            backgroundColor: src ? '#b45309' : '#2d1f14',
+            border: '2px solid #78350f',
+            color: '#fef3c7'
+          }}
         >
           {loading ? (
-            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-amber-700 border-t-amber-500 rounded-full animate-spin" />
           ) : playing ? (
             <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
               <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
@@ -221,9 +228,12 @@ return (
         <button
           onClick={skipForward}
           disabled={!src}
-          className={`w-12 h-8 shrink-0 rounded-full flex items-center justify-center transition-all text-xs font-bold ${
-            src ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-white/5 text-white/30 cursor-not-allowed"
-          }`}
+          className="w-10 h-8 shrink-0 rounded flex items-center justify-center text-xs font-bold"
+          style={{
+            backgroundColor: '#2d1f14',
+            border: '1px solid #4a3728',
+            color: src ? '#92400e' : '#4a3728'
+          }}
         >
           <span>+{SKIP_SECONDS}</span>
         </button>
@@ -231,9 +241,12 @@ return (
         <button
           onClick={onNext}
           disabled={!hasNext}
-          className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center transition-all ${
-            hasNext ? "bg-white/10 hover:bg-white/20 text-white" : "bg-white/5 text-white/30 cursor-not-allowed"
-          }`}
+          className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center transition-all"
+          style={{
+            backgroundColor: hasNext ? '#3d2b1f' : '#2d1f14',
+            border: '1px solid #4a3728',
+            color: hasNext ? '#b45309' : '#4a3728'
+          }}
         >
           <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
             <path d="M6 18l8.5-6L6 6v12zm8.5 0V6h2v12h-2v-6z" />
@@ -243,9 +256,12 @@ return (
         <button
           onClick={stop}
           disabled={!src}
-          className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center transition-all ${
-            src ? "bg-red-500/20 hover:bg-red-500/30 text-red-400" : "bg-white/5 text-white/30 cursor-not-allowed"
-          }`}
+          className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center transition-all"
+          style={{
+            backgroundColor: src ? '#450a03' : '#2d1f14',
+            border: '1px solid #78350f',
+            color: src ? '#fca5a5' : '#4a3728'
+          }}
         >
           <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
             <path d="M6 6h12v12H6V6z" />
