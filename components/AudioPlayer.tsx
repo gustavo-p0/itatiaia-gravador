@@ -36,10 +36,18 @@ export default function AudioPlayer({
     const audio = audioRef.current;
     if (!audio) return;
 
+    const savedTime = localStorage.getItem(`audio_pos_${src}`);
+    if (savedTime && src) {
+      audio.currentTime = parseFloat(savedTime);
+    }
+
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
       if (audio.buffered.length > 0) {
         setBuffered(audio.buffered.end(audio.buffered.length - 1));
+      }
+      if (src) {
+        localStorage.setItem(`audio_pos_${src}`, audio.currentTime.toString());
       }
     };
     const handleLoadedMetadata = () => setDuration(audio.duration);
@@ -50,6 +58,7 @@ export default function AudioPlayer({
     };
     const handleEnded = () => {
       setPlaying(false);
+      if (src) localStorage.removeItem(`audio_pos_${src}`);
       onEnded?.();
     };
     const handleWaiting = () => { setLoading(true); setError(null); };
@@ -80,7 +89,7 @@ export default function AudioPlayer({
       audio.removeEventListener("error", handleError);
       audio.removeEventListener("canplay", handleCanPlay);
     };
-  }, [onEnded]);
+  }, [onEnded, src]);
 
   useEffect(() => {
     if (audioRef.current && src) {
@@ -132,8 +141,9 @@ export default function AudioPlayer({
       audio.currentTime = 0;
       setPlaying(false);
     }
+    if (src) localStorage.removeItem(`audio_pos_${src}`);
     if (onClear) onClear();
-  }, [onClear]);
+  }, [onClear, src]);
 
 return (
     <div className="flex flex-col gap-3 w-full max-w-md">
