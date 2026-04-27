@@ -3,21 +3,14 @@ import { google } from "googleapis";
 
 function getServiceAccountAuth() {
   const credsStr = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
-  if (!credsStr) {
-    console.error('GOOGLE_SERVICE_ACCOUNT_KEY not set');
-    return null;
-  }
+  if (!credsStr) return null;
   let creds;
   try {
     creds = JSON.parse(credsStr);
   } catch (e) {
-    console.error('Failed to parse credentials:', e);
     return null;
   }
-  if (!creds.client_email || !creds.private_key) {
-    console.error('Missing client_email or private_key');
-    return null;
-  }
+  if (!creds.client_email || !creds.private_key) return null;
   return new google.auth.GoogleAuth({
     credentials: creds,
     scopes: ['https://www.googleapis.com/auth/drive.readonly'],
@@ -43,20 +36,11 @@ export async function GET(
     });
 
     const name = fileResponse.data.name || 'audio';
-
-    const authClient = await auth.getClient() as any;
-    const accessToken = authClient.accessToken || authClient.credentials?.access_token;
-
-    if (!accessToken) {
-      return NextResponse.json({ error: 'No access token' }, { status: 401 });
-    }
-
-    const streamUrl = `https://www.googleapis.com/drive/v3/files/${id}?alt=media&fields=*`;
+    const embedUrl = `https://drive.google.com/uc?id=${id}&export=download`;
 
     return NextResponse.json({ 
-      url: streamUrl,
-      name,
-      token: accessToken
+      url: embedUrl,
+      name
     });
   } catch (error: any) {
     console.error('Error getting file:', error);
