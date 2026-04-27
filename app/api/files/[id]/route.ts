@@ -32,10 +32,11 @@ export async function GET(
     
     const fileResponse = await drive.files.get({
       fileId: id,
-      fields: 'name,mimeType',
+      fields: 'name,mimeType,size',
     });
 
     const name = fileResponse.data.name || 'audio';
+    const fileSize = fileResponse.data.size;
     const authClient = await auth.getClient() as any;
     const accessToken = authClient.accessToken || authClient.credentials?.access_token;
 
@@ -59,6 +60,10 @@ export async function GET(
     const headers = new Headers();
     headers.set('Content-Type', 'audio/mp4');
     headers.set('Accept-Ranges', 'bytes');
+    
+    if (fileSize) {
+      headers.set('Content-Length', fileSize);
+    }
 
     return new NextResponse(response.body, { headers });
   } catch (error: any) {

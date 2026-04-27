@@ -41,12 +41,27 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
       if (src) localStorage.setItem(`audio_pos_${src}`, audio.currentTime.toString());
     };
 
-    const handleLoadedMetadata = () => setDuration(audio.duration);
+    const handleLoadedMetadata = () => {
+      if (audio.duration && isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    };
     const handleEnded = () => { setPlaying(false); if (src) localStorage.removeItem(`audio_pos_${src}`); onEnded?.(); };
     const handleWaiting = () => { setLoading(true); setError(null); };
-    const handlePlaying = () => { setLoading(false); setError(null); };
+    const handlePlaying = () => { 
+      setLoading(false); 
+      setError(null);
+      if (audio.duration && isFinite(audio.duration) && duration === 0) {
+        setDuration(audio.duration);
+      }
+    };
     const handleError = () => { setLoading(false); setPlaying(false); setError(audio.error?.message || 'Erro ao carregar'); };
-    const handleCanPlay = () => setLoading(false);
+    const handleCanPlay = () => {
+      setLoading(false);
+      if (audio.duration && isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    };
 
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
@@ -80,6 +95,22 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
       setDuration(0);
       setPlaying(false);
     }
+  }, [src]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    
+    const checkDuration = () => {
+      if (audio.duration && isFinite(audio.duration) && audio.duration > 0) {
+        setDuration(audio.duration);
+      }
+    };
+    
+    const interval = setInterval(checkDuration, 500);
+    checkDuration();
+    
+    return () => clearInterval(interval);
   }, [src]);
 
   useEffect(() => {
