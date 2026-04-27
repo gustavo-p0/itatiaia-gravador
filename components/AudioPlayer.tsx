@@ -86,7 +86,10 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
     if (mediaRecorderRef.current) return;
     
     try {
-      const stream = audioRef.current?.captureStream();
+      const audio = audioRef.current;
+      if (!audio) return;
+
+      const stream = (audio as any).captureStream?.() || (audio as HTMLMediaElement).captureStream?.();
       if (!stream) return;
 
       const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
