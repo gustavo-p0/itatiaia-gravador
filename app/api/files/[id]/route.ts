@@ -36,12 +36,36 @@ export async function GET(
     });
 
     const name = fileResponse.data.name || 'audio';
-    const embedUrl = `https://drive.google.com/uc?id=${id}&export=download`;
 
-    return NextResponse.json({ 
-      url: embedUrl,
-      name
-    });
+    const authClient = await auth.getClient() as any;
+    const accessToken = authClient.accessToken || authClient.credentials?.access_token;
+
+    if (!accessToken) {
+      return NextResponse.json({ error: 'No access token' }, { status: 401 });
+    }
+
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${id}?alt=media`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const err = await response.text();
+      return NextResponse.json({ error: err }, { status: response.status });
+    }
+
+    const headers = new Headers();
+    headers.set('Content-Type', 'audio/mp4');
+    headers.set('Content-Disposition', `inline; filename="${name}"`);
+    headers.set('Cache-Control', 'public, max-age=3600');
+
+    const data = await response.arrayBuffer();
+
+    return new NextResponse(data, { headers });
   } catch (error: any) {
     console.error('Error getting file:', error);
     return NextResponse.json({ error: error.message || 'Failed to get file' }, { status: 500 });
