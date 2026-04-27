@@ -10,6 +10,7 @@ interface AudioPlayerProps {
   onNext?: () => void;
   hasPrev?: boolean;
   hasNext?: boolean;
+  onClear?: () => void;
 }
 
 export default function AudioPlayer({
@@ -19,6 +20,7 @@ export default function AudioPlayer({
   onNext,
   hasPrev,
   hasNext,
+  onClear,
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
@@ -37,8 +39,7 @@ export default function AudioPlayer({
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
       if (audio.buffered.length > 0) {
-        const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
-        setBuffered(bufferedEnd);
+        setBuffered(audio.buffered.end(audio.buffered.length - 1));
       }
     };
     const handleLoadedMetadata = () => setDuration(audio.duration);
@@ -97,13 +98,10 @@ export default function AudioPlayer({
     setPlaying(!playing);
   }, [playing, src]);
 
-  const seek = useCallback((e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+  const handleSeek = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const audio = audioRef.current;
     if (!audio || !duration) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const pos = (clientX - rect.left) / rect.width;
-    audio.currentTime = Math.max(0, Math.min(1, pos)) * duration;
+    audio.currentTime = parseFloat(e.target.value);
   }, [duration]);
 
   const handlePlaybackRate = useCallback((rate: number) => {
@@ -127,8 +125,18 @@ export default function AudioPlayer({
     audio.currentTime = Math.min(duration, audio.currentTime + SKIP_SECONDS);
   }, [duration]);
 
+  const stop = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+      setPlaying(false);
+    }
+    if (onClear) onClear();
+  }, [onClear]);
+
   return (
-    <div className="flex flex-col gap-6 w-full">
+    <div className="flex flex-col gap-4 w-full">
       <audio ref={audioRef} preload="metadata" />
 
       {error && (
@@ -137,26 +145,30 @@ export default function AudioPlayer({
         </div>
       )}
 
-      <div 
-        className="h-4 bg-white/10 rounded-full cursor-pointer group relative select-none touch-none"
-        onClick={seek}
-        onTouchStart={seek}
-      >
-        <div
-          className="h-full bg-white/20 rounded-full absolute"
-          style={{ width: duration ? `${(buffered / duration) * 100}%` : "0%" }}
-        />
-        <div
-          className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full relative transition-all"
-          style={{ width: duration ? `${(currentTime / duration) * 100}%` : "0%" }}
-        >
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-slate-400 font-mono w-12">{formatDuration(currentTime)}</span>
+        
+        <div className="relative flex-1 h-8 flex items-center">
+          <input
+            type="range"
+            min={0}
+            max={duration || 0}
+            step={0.1}
+            value={currentTime}
+            onChange={handleSeek}
+            disabled={!src}
+            className="w-full h-2 appearance-none bg-white/10 rounded-full cursor-pointer touch-manipulation disabled:cursor-not-allowed"
+            style={{
+              background: `linear-gradient(to right, rgb(99, 102, 241) ${duration ? (currentTime / duration) * 100 : 0}%, rgba(255,255,255,0.2) ${duration ? (currentTime / duration) * 100 : 0}%)`
+            }}
+          />
+          <div 
+            className="absolute h-2 bg-white/20 pointer-events-none"
+            style={{ width: duration ? `${(buffered / duration) * 100}%` : "0%" }}
+          />
         </div>
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full shadow-lg group-hover:scale-110 transition-transform pointer-events-none" style={{ left: duration ? `${(currentTime / duration) * 100}%` : "0%", transform: 'translate(-50%, -50%)' }} />
-      </div>
 
-      <div className="flex justify-between text-sm text-slate-400 font-mono">
-        <span>{formatDuration(currentTime)}</span>
-        <span>{formatDuration(duration || 0)}</span>
+        <span className="text-xs text-slate-400 font-mono w-12 text-right">{formatDuration(duration || 0)}</span>
       </div>
 
       <div className="flex items-center justify-center gap-3 flex-wrap">
@@ -257,6 +269,19 @@ export default function AudioPlayer({
             </div>
           )}
         </div>
+
+        <button
+          onClick={stop}
+          disabled={!src}
+          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+            src ? "bg-red-500/20 hover:bg-red-500/30 text-red-400" : "bg-white/5 text-white/30 cursor-not-allowed"
+          }`}
+          title="Parar"
+        >
+          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
+            <path d="M6 6h12v12H6V6z" />
+          </svg>
+        </button>
       </div>
     </div>
   );

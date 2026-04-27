@@ -80,6 +80,11 @@ const fetchAudioUrl = useCallback(async (fileId: string) => {
     handleNext();
   }, [handleNext]);
 
+  const handleClear = useCallback(() => {
+    setAudioUrl(null);
+    setCurrentFile(null);
+  }, []);
+
   const currentIndex = currentFile ? files.findIndex((f) => f.id === currentFile.id) : -1;
 
   if (loading) {
@@ -169,6 +174,7 @@ const fetchAudioUrl = useCallback(async (fileId: string) => {
                 hasPrev={currentIndex > 0}
                 hasNext={currentIndex < files.length - 1}
                 onEnded={handleEnded}
+                onClear={handleClear}
               />
             </div>
           </div>
