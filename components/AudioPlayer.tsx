@@ -28,15 +28,21 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
     const savedTime = localStorage.getItem(`audio_pos_${src}`);
-    if (savedTime && src) audio.currentTime = parseFloat(savedTime);
+    if (savedTime && src && audio.src) {
+      const time = parseFloat(savedTime);
+      if (!isNaN(time)) audio.currentTime = time;
+    } else if (audio.src) {
+      audio.currentTime = 0;
+    }
 
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
+      if (audio.buffered.length > 0) setBuffered(audio.buffered.end(audio.buffered.length - 1));
       if (src) localStorage.setItem(`audio_pos_${src}`, audio.currentTime.toString());
     };
     const handleLoadedMetadata = () => setDuration(audio.duration);
@@ -67,9 +73,16 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
 
   useEffect(() => {
     if (audioRef.current && src) {
+      setCurrentTime(0);
+      setDuration(0);
+      setPlaying(false);
       audioRef.current.src = src;
       audioRef.current.load();
       audioRef.current.play().catch(() => setPlaying(false));
+    } else if (!src) {
+      setCurrentTime(0);
+      setDuration(0);
+      setPlaying(false);
     }
   }, [src]);
 
