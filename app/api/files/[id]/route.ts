@@ -54,18 +54,16 @@ export async function GET(
     );
 
     if (!response.ok) {
-      const err = await response.text();
-      return NextResponse.json({ error: err }, { status: response.status });
+      return NextResponse.json({ error: 'Failed to fetch from Drive' }, { status: 500 });
     }
 
-    const headers = new Headers();
-    headers.set('Content-Type', 'audio/mp4');
-    headers.set('Content-Disposition', `inline; filename="${name}"`);
-    headers.set('Cache-Control', 'public, max-age=3600');
-
-    const data = await response.arrayBuffer();
-
-    return new NextResponse(data, { headers });
+    return new NextResponse(response.body, {
+      headers: {
+        'Content-Type': 'audio/mp4',
+        'Content-Disposition': `inline; filename="${name}"`,
+        'Accept-Ranges': 'none',
+      },
+    });
   } catch (error: any) {
     console.error('Error getting file:', error);
     return NextResponse.json({ error: error.message || 'Failed to get file' }, { status: 500 });
