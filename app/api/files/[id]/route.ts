@@ -45,37 +45,19 @@ export async function GET(
     const name = fileResponse.data.name || 'audio';
 
     const authClient = await auth.getClient() as any;
-    console.log('Auth client keys:', Object.keys(authClient));
-    console.log('Auth client.credentials:', authClient.credentials);
     const accessToken = authClient.accessToken || authClient.credentials?.access_token;
 
     if (!accessToken) {
-      console.log('No access token found, full authClient:', JSON.stringify(authClient));
       return NextResponse.json({ error: 'No access token' }, { status: 401 });
     }
 
-    const response = await fetch(
-      `https://www.googleapis.com/drive/v3/files/${id}?alt=media`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const streamUrl = `https://www.googleapis.com/drive/v3/files/${id}?alt=media&fields=*`;
 
-    if (!response.ok) {
-      const err = await response.text();
-      return NextResponse.json({ error: err }, { status: response.status });
-    }
-
-    const headers = new Headers();
-    headers.set('Content-Type', 'audio/mp4');
-    headers.set('Content-Disposition', `inline; filename="${name}"`);
-    headers.set('Cache-Control', 'public, max-age=3600');
-
-    const data = await response.arrayBuffer();
-
-    return new NextResponse(data, { headers });
+    return NextResponse.json({ 
+      url: streamUrl,
+      name,
+      token: accessToken
+    });
   } catch (error: any) {
     console.error('Error getting file:', error);
     return NextResponse.json({ error: error.message || 'Failed to get file' }, { status: 500 });

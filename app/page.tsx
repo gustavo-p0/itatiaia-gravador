@@ -40,10 +40,9 @@ useEffect(() => {
     setAudioUrl(null);
     try {
       const res = await fetch(`${API_BASE}/api/files/${fileId}`);
-      if (res.ok) {
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        setAudioUrl(url);
+      const data = await res.json();
+      if (data.url && data.token) {
+        setAudioUrl(`${data.url}&access_token=${data.token}`);
       }
     } catch (err) {
       console.error("Failed to fetch audio URL:", err);
