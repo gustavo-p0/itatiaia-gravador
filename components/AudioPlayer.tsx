@@ -120,7 +120,7 @@ export default function AudioPlayer({
     setShowSpeedMenu(false);
   }, []);
 
-  const SKIP_SECONDS = 30;
+  const SKIP_SECONDS = 10;
 
   const skipBack = useCallback(() => {
     const audio = audioRef.current;
@@ -189,13 +189,11 @@ return (
         <button
           onClick={skipBack}
           disabled={!src}
-          className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center transition-all text-xs font-bold ${
+          className={`w-12 h-8 shrink-0 rounded-full flex items-center justify-center transition-all text-xs font-bold ${
             src ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-white/5 text-white/30 cursor-not-allowed"
           }`}
         >
-          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
-            <path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z" />
-          </svg>
+          <span>-{SKIP_SECONDS}</span>
         </button>
 
         <button
@@ -223,13 +221,11 @@ return (
         <button
           onClick={skipForward}
           disabled={!src}
-          className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center transition-all text-xs font-bold ${
+          className={`w-12 h-8 shrink-0 rounded-full flex items-center justify-center transition-all text-xs font-bold ${
             src ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-white/5 text-white/30 cursor-not-allowed"
           }`}
         >
-          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
-            <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" />
-          </svg>
+          <span>+{SKIP_SECONDS}</span>
         </button>
 
         <button
