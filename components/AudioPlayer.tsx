@@ -123,16 +123,23 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
         <div className="text-center text-xs py-1 rounded" style={{ backgroundColor: '#3d1008', color: '#fca5a5' }}>{error}</div>
       )}
 
-      <div className="flex items-center gap-2">
-        <span className="text-xs font-mono w-10" style={{ color: '#8b6b3d' }}>{formatDuration(currentTime)}</span>
-        <input type="range" min={0} max={duration || 0} step={0.1} value={currentTime} onChange={handleSeek} disabled={!src}
-          className="flex-1 h-2 appearance-none rounded-full cursor-pointer touch-manipulation disabled:cursor-not-allowed"
-          style={{
-            background: `linear-gradient(to right, #b8860b ${duration ? (currentTime / duration) * 100 : 0}%, #3d2b1f ${duration ? (currentTime / duration) * 100 : 0}%)`
-          }}
-        />
-        <span className="text-xs font-mono w-10 text-right" style={{ color: '#8b6b3d' }}>{formatDuration(duration || 0)}</span>
-      </div>
+<div className="flex items-center gap-3">
+  <span className="text-xs font-mono shrink-0 min-w-[3ch] text-center">{formatDuration(currentTime)}</span>
+  <input
+    type="range"
+    min={0}
+    max={duration || 0}
+    step={0.1}
+    value={currentTime}
+    onChange={handleSeek}
+    disabled={!src}
+    className="flex-1 h-2 appearance-none rounded-full cursor-pointer touch-manipulation disabled:cursor-not-allowed"
+    style={{
+      background: `linear-gradient(to right, #b8860b ${duration ? (currentTime / duration) * 100 : 0}%, #3d2b1f ${duration ? (currentTime / duration) * 100 : 0}%)`
+    }}
+  />
+  <span className="text-xs font-mono shrink-0 min-w-[3ch] text-right">{formatDuration(duration || 0)}</span>
+</div>
 
       <div className="flex items-center justify-center gap-1">
         <button onClick={onPrev} disabled={!hasPrev} className="w-8 h-8 rounded flex items-center justify-center" style={{ backgroundColor: hasPrev ? '#3d2b1f' : '#2d1b14', border: '1px solid #4a3020', color: hasPrev ? '#b8860b' : '#4a3020' }}>
