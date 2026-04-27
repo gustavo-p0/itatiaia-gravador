@@ -18,7 +18,7 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/api/proxy?action=files`);
+      const res = await fetch(`${API_BASE}/api/files`);
       const data = await res.json();
       if (data.files) {
         setFiles(data.files);
@@ -45,7 +45,7 @@ export default function HomePage() {
   const fetchAudioUrl = useCallback(async (fileId: string) => {
     setAudioUrl(null);
     try {
-      const res = await fetch(`${API_BASE}/api/proxy?action=url&id=${fileId}`);
+      const res = await fetch(`${API_BASE}/api/files/${fileId}`);
       const data = await res.json();
       if (data.url) {
         setAudioUrl(data.url);
