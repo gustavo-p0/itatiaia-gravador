@@ -5,8 +5,6 @@ import AudioPlayer from "@/components/AudioPlayer";
 import FileList, { type FileItem } from "@/components/FileList";
 import { formatFileName } from "@/lib/utils";
 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzyUC-ZhcWUuCBTbnMAVi9YuxUoSCP4cHP0fZ-nUU65Jyooc-z-Hve8Rf1QFnPd86A/exec";
-
 const API_BASE = "";
 
 export default function HomePage() {
@@ -20,7 +18,7 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${APPS_SCRIPT_URL}?action=files`);
+      const res = await fetch(`${API_BASE}/api/proxy?action=files`);
       const data = await res.json();
       if (data.files) {
         setFiles(data.files);
@@ -47,7 +45,7 @@ export default function HomePage() {
   const fetchAudioUrl = useCallback(async (fileId: string) => {
     setAudioUrl(null);
     try {
-      const res = await fetch(`${APPS_SCRIPT_URL}?action=url&id=${fileId}`);
+      const res = await fetch(`${API_BASE}/api/proxy?action=url&id=${fileId}`);
       const data = await res.json();
       if (data.url) {
         setAudioUrl(data.url);
