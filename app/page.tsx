@@ -36,16 +36,15 @@ useEffect(() => {
     fetchFiles();
   }, [fetchFiles]);
 
-const fetchAudioUrl = useCallback(async (fileId: string) => {
+  const fetchAudioUrl = useCallback(async (fileId: string) => {
+    setAudioUrl(null);
     try {
       const res = await fetch(`${API_BASE}/api/files/${fileId}`);
-      const data = await res.json();
-      if (data.error) {
-        console.error("API error:", data.error);
-        setAudioUrl(null);
-        return;
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        setAudioUrl(url);
       }
-      setAudioUrl(`${API_BASE}/api/files/${fileId}`);
     } catch (err) {
       console.error("Failed to fetch audio URL:", err);
     }
