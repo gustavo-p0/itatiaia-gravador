@@ -6,24 +6,32 @@ const FOLDER_ID = '1kByEbTVDBijyihxl2BNBN1sTFK8be8e4';
 export async function GET() {
   try {
     const token = JSON.parse(process.env.GDRIVE_ACCESS_TOKEN || '{}');
-    
-    const oauth2Client = new google.auth.OAuth2();
-    oauth2Client.setCredentials(token);
+    const accessToken = token.access_token;
 
-    const drive = google.drive({ version: 'v3', auth: oauth2Client });
+    if (!accessToken) {
+      return NextResponse.json({ error: 'No access token' }, { status: 401 });
+    }
 
-    const response = await drive.files.list({
-      q: `'${FOLDER_ID}' in parents and name contains '.aac'`,
-      fields: 'files(id, name, createdTime, size)',
-      orderBy: 'createdTime desc',
-      pageSize: 100,
-    });
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'+in+parents+and+name+contains+'.aac'&fields=files(id,name,createdTime,size)&orderBy=createdTime+desc&pageSize=100`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
 
-    const files = (response.data.files || []).map((f) => ({
+    const data = await response.json();
+
+    if (data.error) {
+      return NextResponse.json({ error: data.error.message || 'API error' }, { status: 500 });
+    }
+
+    const files = (data.files || []).map((f: any) => ({
       id: f.id,
       name: f.name,
       createdTime: f.createdTime,
-      size: f.size ? parseInt(f.size as string, 10) : null,
+      size: f.size ? parseInt(f.size, 10) : null,
     }));
 
     return NextResponse.json({ files });

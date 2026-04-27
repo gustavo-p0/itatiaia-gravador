@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { google } from "googleapis";
 
 export async function GET(
   request: Request,
@@ -8,22 +7,32 @@ export async function GET(
   try {
     const { id } = await params;
     const token = JSON.parse(process.env.GDRIVE_ACCESS_TOKEN || '{}');
+    const accessToken = token.access_token;
 
-    const oauth2Client = new google.auth.OAuth2();
-    oauth2Client.setCredentials(token);
+    if (!accessToken) {
+      return NextResponse.json({ error: 'No access token' }, { status: 401 });
+    }
 
-    const drive = google.drive({ version: 'v3', auth: oauth2Client });
+    const fileResponse = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${id}?fields=name`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
 
-    const file = await drive.files.get({
-      fileId: id,
-      fields: 'name',
-    });
+    const fileData = await fileResponse.json();
+
+    if (fileData.error) {
+      return NextResponse.json({ error: fileData.error.message || 'API error' }, { status: 500 });
+    }
 
     const url = `https://www.googleapis.com/drive/v3/files/${id}?alt=media`;
 
     return NextResponse.json({ 
       url,
-      name: file.data.name 
+      name: fileData.name 
     });
   } catch (error) {
     console.error('Error getting file URL:', error);
