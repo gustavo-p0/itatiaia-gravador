@@ -192,14 +192,14 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
         <input
           type="range"
           min={0}
-          max={duration || 0}
+          max={isFinite(duration) ? duration : 0}
           step={0.1}
-          value={currentTime}
+          value={isFinite(currentTime) ? currentTime : 0}
           onChange={handleSeek}
-          disabled={!src}
+          disabled={!src || !isFinite(duration)}
           className="flex-1 h-2 appearance-none rounded-full cursor-pointer touch-manipulation disabled:cursor-not-allowed"
           style={{
-            background: `linear-gradient(to right, #b8860b ${duration ? (currentTime / duration) * 100 : 0}%, #3d2b1f ${duration ? (currentTime / duration) * 100 : 0}%)`
+            background: `linear-gradient(to right, #b8860b ${isFinite(duration) && duration > 0 ? (currentTime / duration) * 100 : 0}%, #3d2b1f ${isFinite(duration) && duration > 0 ? (currentTime / duration) * 100 : 0}%)`
           }}
         />
         <span className="text-xs font-mono shrink-0 min-w-[3ch] text-right text-black">{formatDuration(duration || 0)}</span>
