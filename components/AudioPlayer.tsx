@@ -11,6 +11,7 @@ interface AudioPlayerProps {
   hasPrev?: boolean;
   hasNext?: boolean;
   onClear?: () => void;
+  onProgressUpdate?: (progress: number) => void;
 }
 
 export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, hasNext, onClear }: AudioPlayerProps) {

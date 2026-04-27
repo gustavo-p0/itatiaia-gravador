@@ -57,7 +57,6 @@ export default function HomePage() {
   const handleEnded = useCallback(() => handleNext(), [handleNext]);
   const handleClear = useCallback(() => { setAudioUrl(null); setCurrentFile(null); }, []);
   const currentIndex = currentFile ? files.findIndex(f => f.id === currentFile.id) : -1;
-  const progress = currentTime / (duration || 1);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #2d251b 0%, #1a1510 100%)' }}>
