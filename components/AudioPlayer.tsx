@@ -97,11 +97,13 @@ export default function AudioPlayer({
     setPlaying(!playing);
   }, [playing, src]);
 
-  const seek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  const seek = useCallback((e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     const audio = audioRef.current;
     if (!audio || !duration) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    audio.currentTime = ((e.clientX - rect.left) / rect.width) * duration;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const pos = (clientX - rect.left) / rect.width;
+    audio.currentTime = Math.max(0, Math.min(1, pos)) * duration;
   }, [duration]);
 
   const handlePlaybackRate = useCallback((rate: number) => {
@@ -135,7 +137,11 @@ export default function AudioPlayer({
         </div>
       )}
 
-      <div className="h-2 bg-white/10 rounded-full cursor-pointer group relative" onClick={seek}>
+      <div 
+        className="h-4 bg-white/10 rounded-full cursor-pointer group relative select-none touch-none"
+        onClick={seek}
+        onTouchStart={seek}
+      >
         <div
           className="h-full bg-white/20 rounded-full absolute"
           style={{ width: duration ? `${(buffered / duration) * 100}%` : "0%" }}
@@ -144,8 +150,8 @@ export default function AudioPlayer({
           className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full relative transition-all"
           style={{ width: duration ? `${(currentTime / duration) * 100}%` : "0%" }}
         >
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg" />
         </div>
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full shadow-lg group-hover:scale-110 transition-transform pointer-events-none" style={{ left: duration ? `${(currentTime / duration) * 100}%` : "0%", transform: 'translate(-50%, -50%)' }} />
       </div>
 
       <div className="flex justify-between text-sm text-slate-400 font-mono">
