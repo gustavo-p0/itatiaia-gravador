@@ -16,19 +16,17 @@ interface AudioPlayerProps {
 
 export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, hasNext, onClear, onSongRecognized }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  const recognitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+  const recognitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [playbackRate, setPlaybackRate] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-useEffect(() => {
+  useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
@@ -36,15 +34,13 @@ useEffect(() => {
     if (savedTime && src && audio.src) {
       const time = parseFloat(savedTime);
       if (!isNaN(time)) audio.currentTime = time;
-    } else if (audio.src) {
-      audio.currentTime = 0;
     }
 
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
-      if (audio.buffered.length > 0) setBuffered(audio.buffered.end(audio.buffered.length - 1));
       if (src) localStorage.setItem(`audio_pos_${src}`, audio.currentTime.toString());
     };
+
     const handleLoadedMetadata = () => setDuration(audio.duration);
     const handleEnded = () => { setPlaying(false); if (src) localStorage.removeItem(`audio_pos_${src}`); onEnded?.(); };
     const handleWaiting = () => { setLoading(true); setError(null); };
@@ -97,33 +93,24 @@ useEffect(() => {
 
   const startRecognition = async () => {
     if (mediaRecorderRef.current) return;
-    
     try {
       const audio = audioRef.current;
       if (!audio) return;
-
       const stream = (audio as any).captureStream();
       if (!stream) return;
-
       const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
-
-      mediaRecorder.ondataavailable = async (e) => {
-        if (e.data.size > 0) {
-          chunksRef.current.push(e.data);
-        }
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
       };
-
       mediaRecorder.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
         await recognizeSong(blob);
-        
         if (playing) {
           recognitionTimeoutRef.current = setTimeout(startRecognition, 30000);
         }
       };
-
       mediaRecorder.start();
       setTimeout(() => mediaRecorder.stop(), 10000);
     } catch (err) {
@@ -146,12 +133,7 @@ useEffect(() => {
     try {
       const formData = new FormData();
       formData.append('file', blob, 'audio.webm');
-
-      const res = await fetch('/api/recognize', {
-        method: 'POST',
-        body: formData,
-      });
-
+      const res = await fetch('/api/recognize', { method: 'POST', body: formData });
       const data = await res.json();
       if (data.success && data.song && onSongRecognized) {
         onSongRecognized(data.song);
@@ -200,7 +182,6 @@ useEffect(() => {
   return (
     <div className="flex flex-col gap-2 w-full">
       <audio ref={audioRef} preload="metadata" />
-      <canvas ref={canvasRef} className="hidden" />
 
       {error && (
         <div className="text-center text-xs py-1 rounded" style={{ backgroundColor: '#3d1008', color: '#fca5a5' }}>{error}</div>
