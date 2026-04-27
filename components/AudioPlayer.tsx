@@ -125,7 +125,7 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
       )}
 
 <div className="flex items-center gap-3">
-  <span className="text-xs font-mono shrink-0 min-w-[3ch] text-center">{formatDuration(currentTime)}</span>
+  <span className="text-xs font-mono shrink-0 min-w-[3ch] text-center text-black">{formatDuration(currentTime)}</span>
   <input
     type="range"
     min={0}
@@ -139,7 +139,7 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
       background: `linear-gradient(to right, #b8860b ${duration ? (currentTime / duration) * 100 : 0}%, #3d2b1f ${duration ? (currentTime / duration) * 100 : 0}%)`
     }}
   />
-  <span className="text-xs font-mono shrink-0 min-w-[3ch] text-right">{formatDuration(duration || 0)}</span>
+  <span className="text-xs font-mono shrink-0 min-w-[3ch] text-right text-black">{formatDuration(duration || 0)}</span>
 </div>
 
       <div className="flex items-center justify-center gap-1">
