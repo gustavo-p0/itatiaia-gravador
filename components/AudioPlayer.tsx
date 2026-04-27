@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { formatDuration, PLAYBACK_RATES } from "@/lib/utils";
+import { formatDuration } from "@/lib/utils";
 
 interface AudioPlayerProps {
   src: string | null;
@@ -11,18 +11,21 @@ interface AudioPlayerProps {
   hasPrev?: boolean;
   hasNext?: boolean;
   onClear?: () => void;
-  onProgressUpdate?: (progress: number) => void;
+  onSongRecognized?: (song: { title: string; artist: string; album: string | null }) => void;
 }
 
-export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, hasNext, onClear }: AudioPlayerProps) {
+export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, hasNext, onClear, onSongRecognized }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const recognitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [buffered, setBuffered] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,11 +37,9 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
 
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
-      if (audio.buffered.length > 0) setBuffered(audio.buffered.end(audio.buffered.length - 1));
       if (src) localStorage.setItem(`audio_pos_${src}`, audio.currentTime.toString());
     };
     const handleLoadedMetadata = () => setDuration(audio.duration);
-    const handleProgress = () => { if (audio.buffered.length > 0) setBuffered(audio.buffered.end(audio.buffered.length - 1)); };
     const handleEnded = () => { setPlaying(false); if (src) localStorage.removeItem(`audio_pos_${src}`); onEnded?.(); };
     const handleWaiting = () => { setLoading(true); setError(null); };
     const handlePlaying = () => { setLoading(false); setError(null); };
@@ -47,7 +48,6 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
 
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
-    audio.addEventListener("progress", handleProgress);
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("waiting", handleWaiting);
     audio.addEventListener("playing", handlePlaying);
@@ -57,14 +57,13 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.removeEventListener("progress", handleProgress);
       audio.removeEventListener("ended", handleEnded);
       audio.removeEventListener("waiting", handleWaiting);
       audio.removeEventListener("playing", handlePlaying);
       audio.removeEventListener("error", handleError);
       audio.removeEventListener("canplay", handleCanPlay);
     };
-  }, [onEnded, src]);
+  }, [onEnded, src, onSongRecognized]);
 
   useEffect(() => {
     if (audioRef.current && src) {
@@ -73,6 +72,78 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
       audioRef.current.play().catch(() => setPlaying(false));
     }
   }, [src]);
+
+  useEffect(() => {
+    if (playing && onSongRecognized) {
+      startRecognition();
+    } else {
+      stopRecognition();
+    }
+    return () => stopRecognition();
+  }, [playing, onSongRecognized]);
+
+  const startRecognition = async () => {
+    if (mediaRecorderRef.current) return;
+    
+    try {
+      const stream = audioRef.current?.captureStream();
+      if (!stream) return;
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      mediaRecorderRef.current = mediaRecorder;
+      chunksRef.current = [];
+
+      mediaRecorder.ondataavailable = async (e) => {
+        if (e.data.size > 0) {
+          chunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        await recognizeSong(blob);
+        
+        if (playing) {
+          recognitionTimeoutRef.current = setTimeout(startRecognition, 30000);
+        }
+      };
+
+      mediaRecorder.start();
+      setTimeout(() => mediaRecorder.stop(), 10000);
+    } catch (err) {
+      console.error('Recognition error:', err);
+    }
+  };
+
+  const stopRecognition = () => {
+    if (mediaRecorderRef.current?.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+    mediaRecorderRef.current = null;
+    if (recognitionTimeoutRef.current) {
+      clearTimeout(recognitionTimeoutRef.current);
+      recognitionTimeoutRef.current = null;
+    }
+  };
+
+  const recognizeSong = async (blob: Blob) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', blob, 'audio.webm');
+
+      const res = await fetch('/api/recognize', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success && data.song && onSongRecognized) {
+        onSongRecognized(data.song);
+      }
+    } catch (err) {
+      console.error('Recognition failed:', err);
+    }
+  };
 
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;
@@ -87,13 +158,6 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
     if (!audio || !duration) return;
     audio.currentTime = parseFloat(e.target.value);
   }, [duration]);
-
-  const handlePlaybackRate = useCallback((rate: number) => {
-    const audio = audioRef.current;
-    if (audio) audio.playbackRate = rate;
-    setPlaybackRate(rate);
-    setShowSpeedMenu(false);
-  }, []);
 
   const SKIP_SECONDS = 10;
 
@@ -112,6 +176,7 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
   const stop = useCallback(() => {
     const audio = audioRef.current;
     if (audio) { audio.pause(); audio.currentTime = 0; setPlaying(false); }
+    stopRecognition();
     if (src) localStorage.removeItem(`audio_pos_${src}`);
     if (onClear) onClear();
   }, [onClear, src]);
@@ -119,28 +184,29 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
   return (
     <div className="flex flex-col gap-2 w-full">
       <audio ref={audioRef} preload="metadata" />
+      <canvas ref={canvasRef} className="hidden" />
 
       {error && (
         <div className="text-center text-xs py-1 rounded" style={{ backgroundColor: '#3d1008', color: '#fca5a5' }}>{error}</div>
       )}
 
-<div className="flex items-center gap-3">
-  <span className="text-xs font-mono shrink-0 min-w-[3ch] text-center text-black">{formatDuration(currentTime)}</span>
-  <input
-    type="range"
-    min={0}
-    max={duration || 0}
-    step={0.1}
-    value={currentTime}
-    onChange={handleSeek}
-    disabled={!src}
-    className="flex-1 h-2 appearance-none rounded-full cursor-pointer touch-manipulation disabled:cursor-not-allowed"
-    style={{
-      background: `linear-gradient(to right, #b8860b ${duration ? (currentTime / duration) * 100 : 0}%, #3d2b1f ${duration ? (currentTime / duration) * 100 : 0}%)`
-    }}
-  />
-  <span className="text-xs font-mono shrink-0 min-w-[3ch] text-right text-black">{formatDuration(duration || 0)}</span>
-</div>
+      <div className="flex items-center gap-3">
+        <span className="text-xs font-mono shrink-0 min-w-[3ch] text-center text-black">{formatDuration(currentTime)}</span>
+        <input
+          type="range"
+          min={0}
+          max={duration || 0}
+          step={0.1}
+          value={currentTime}
+          onChange={handleSeek}
+          disabled={!src}
+          className="flex-1 h-2 appearance-none rounded-full cursor-pointer touch-manipulation disabled:cursor-not-allowed"
+          style={{
+            background: `linear-gradient(to right, #b8860b ${duration ? (currentTime / duration) * 100 : 0}%, #3d2b1f ${duration ? (currentTime / duration) * 100 : 0}%)`
+          }}
+        />
+        <span className="text-xs font-mono shrink-0 min-w-[3ch] text-right text-black">{formatDuration(duration || 0)}</span>
+      </div>
 
       <div className="flex items-center justify-center gap-1">
         <button onClick={onPrev} disabled={!hasPrev} className="w-8 h-8 rounded flex items-center justify-center" style={{ backgroundColor: hasPrev ? '#3d2b1f' : '#2d1b14', border: '1px solid #4a3020', color: hasPrev ? '#b8860b' : '#4a3020' }}>
