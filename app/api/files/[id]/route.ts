@@ -32,10 +32,11 @@ export async function GET(
     
     const fileResponse = await drive.files.get({
       fileId: id,
-      fields: 'name,mimeType',
+      fields: 'name,mimeType,size',
     });
 
     const name = fileResponse.data.name || 'audio';
+    const fileSize = parseInt(fileResponse.data.size || '0', 10);
 
     const authClient = await auth.getClient() as any;
     const accessToken = authClient.accessToken || authClient.credentials?.access_token;
@@ -43,6 +44,12 @@ export async function GET(
     if (!accessToken) {
       return NextResponse.json({ error: 'No access token' }, { status: 401 });
     }
+
+    const headers = new Headers();
+    headers.set('Content-Type', 'audio/mp4');
+    headers.set('Content-Disposition', `inline; filename="${name}"`);
+    headers.set('Accept-Ranges', 'bytes');
+    headers.set('Content-Length', String(fileSize));
 
     const response = await fetch(
       `https://www.googleapis.com/drive/v3/files/${id}?alt=media`,
@@ -54,19 +61,10 @@ export async function GET(
     );
 
     if (!response.ok) {
-      const err = await response.text();
-      return NextResponse.json({ error: err }, { status: response.status });
+      return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
     }
 
-    const stream = response.body;
-
-    return new NextResponse(stream, {
-      headers: {
-        'Content-Type': 'audio/mp4',
-        'Content-Disposition': `inline; filename="${name}"`,
-        'Accept-Ranges': 'none',
-      },
-    });
+    return new NextResponse(response.body, { headers });
   } catch (error: any) {
     console.error('Error getting file:', error);
     return NextResponse.json({ error: error.message || 'Failed to get file' }, { status: 500 });
