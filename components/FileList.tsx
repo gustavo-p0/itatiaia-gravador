@@ -18,11 +18,11 @@ interface FileListProps {
 export default function FileList({ files, currentFileId, onSelect }: FileListProps) {
   if (files.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <svg viewBox="0 0 24 24" className="w-16 h-16 mb-4" style={{ color: '#4a3728' }} fill="currentColor">
+      <div className="flex flex-col items-center justify-center py-8">
+        <svg viewBox="0 0 24 24" className="w-12 h-12 mb-2" style={{ color: '#4a3020' }} fill="currentColor">
           <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
         </svg>
-        <p className="text-lg font-medium" style={{ color: '#4a3728' }}>Nenhum arquivo</p>
+        <p style={{ color: '#5a4030' }}>Nenhum arquivo</p>
       </div>
     );
   }
@@ -35,28 +35,20 @@ export default function FileList({ files, currentFileId, onSelect }: FileListPro
           <button
             key={file.id}
             onClick={() => onSelect(file)}
-            className="w-full flex items-center gap-3 p-2 rounded-lg transition-all text-left"
+            className="w-full flex items-center gap-2 p-2 rounded transition-all text-left"
             style={{
               backgroundColor: isActive ? '#3d2b1f' : 'transparent',
-              border: isActive ? '1px solid #78350f' : '1px solid transparent'
+              border: isActive ? '1px solid #8b6b3d' : '1px solid transparent'
             }}
           >
-            <div
-              className="w-8 h-8 rounded flex items-center justify-center"
-              style={{
-                backgroundColor: isActive ? '#92400e' : '#2d1f14',
-                border: '1px solid #4a3728'
-              }}
-            >
-              <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ color: isActive ? '#fef3c7' : '#92400e' }} fill="currentColor">
+            <div className="w-6 h-6 rounded flex items-center justify-center" style={{ backgroundColor: isActive ? '#8b6b3d' : '#2d1b14', border: '1px solid #4a3020' }}>
+              <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ color: isActive ? '#fef3c7' : '#6b5030' }} fill="currentColor">
                 <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
               </svg>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate" style={{ color: isActive ? '#fef3c7' : '#d6d3d1' }}>
-                {formatFileName(file.name)}
-              </p>
-            </div>
+            <p className="text-sm truncate" style={{ color: isActive ? '#d4a84b' : '#a08060' }}>
+              {formatFileName(file.name)}
+            </p>
           </button>
         );
       })}

@@ -13,15 +13,7 @@ interface AudioPlayerProps {
   onClear?: () => void;
 }
 
-export default function AudioPlayer({
-  src,
-  onEnded,
-  onPrev,
-  onNext,
-  hasPrev,
-  hasNext,
-  onClear,
-}: AudioPlayerProps) {
+export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, hasNext, onClear }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -37,37 +29,19 @@ export default function AudioPlayer({
     if (!audio) return;
 
     const savedTime = localStorage.getItem(`audio_pos_${src}`);
-    if (savedTime && src) {
-      audio.currentTime = parseFloat(savedTime);
-    }
+    if (savedTime && src) audio.currentTime = parseFloat(savedTime);
 
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
-      if (audio.buffered.length > 0) {
-        setBuffered(audio.buffered.end(audio.buffered.length - 1));
-      }
-      if (src) {
-        localStorage.setItem(`audio_pos_${src}`, audio.currentTime.toString());
-      }
+      if (audio.buffered.length > 0) setBuffered(audio.buffered.end(audio.buffered.length - 1));
+      if (src) localStorage.setItem(`audio_pos_${src}`, audio.currentTime.toString());
     };
     const handleLoadedMetadata = () => setDuration(audio.duration);
-    const handleProgress = () => {
-      if (audio.buffered.length > 0) {
-        setBuffered(audio.buffered.end(audio.buffered.length - 1));
-      }
-    };
-    const handleEnded = () => {
-      setPlaying(false);
-      if (src) localStorage.removeItem(`audio_pos_${src}`);
-      onEnded?.();
-    };
+    const handleProgress = () => { if (audio.buffered.length > 0) setBuffered(audio.buffered.end(audio.buffered.length - 1)); };
+    const handleEnded = () => { setPlaying(false); if (src) localStorage.removeItem(`audio_pos_${src}`); onEnded?.(); };
     const handleWaiting = () => { setLoading(true); setError(null); };
     const handlePlaying = () => { setLoading(false); setError(null); };
-    const handleError = () => { 
-      setLoading(false); 
-      setPlaying(false);
-      setError(audio.error?.message || 'Erro ao carregar');
-    };
+    const handleError = () => { setLoading(false); setPlaying(false); setError(audio.error?.message || 'Erro ao carregar'); };
     const handleCanPlay = () => setLoading(false);
 
     audio.addEventListener("timeupdate", handleTimeUpdate);
@@ -136,136 +110,55 @@ export default function AudioPlayer({
 
   const stop = useCallback(() => {
     const audio = audioRef.current;
-    if (audio) {
-      audio.pause();
-      audio.currentTime = 0;
-      setPlaying(false);
-    }
+    if (audio) { audio.pause(); audio.currentTime = 0; setPlaying(false); }
     if (src) localStorage.removeItem(`audio_pos_${src}`);
     if (onClear) onClear();
   }, [onClear, src]);
 
-return (
-    <div className="flex flex-col gap-3 w-full">
+  return (
+    <div className="flex flex-col gap-2 w-full">
       <audio ref={audioRef} preload="metadata" />
 
       {error && (
-        <div className="text-center text-xs py-2 rounded" style={{ backgroundColor: '#451a03', color: '#fca5a5' }}>
-          {error}
-        </div>
+        <div className="text-center text-xs py-1 rounded" style={{ backgroundColor: '#3d1008', color: '#fca5a5' }}>{error}</div>
       )}
 
       <div className="flex items-center gap-2">
-        <span className="text-xs font-mono w-10 shrink-0" style={{ color: '#92400e' }}>{formatDuration(currentTime)}</span>
-        <input
-          type="range"
-          min={0}
-          max={duration || 0}
-          step={0.1}
-          value={currentTime}
-          onChange={handleSeek}
-          disabled={!src}
+        <span className="text-xs font-mono w-10" style={{ color: '#8b6b3d' }}>{formatDuration(currentTime)}</span>
+        <input type="range" min={0} max={duration || 0} step={0.1} value={currentTime} onChange={handleSeek} disabled={!src}
           className="flex-1 h-2 appearance-none rounded-full cursor-pointer touch-manipulation disabled:cursor-not-allowed"
           style={{
-            background: `linear-gradient(to right, #b45309 ${duration ? (currentTime / duration) * 100 : 0}%, #3d2b1f ${duration ? (currentTime / duration) * 100 : 0}%)`
+            background: `linear-gradient(to right, #b8860b ${duration ? (currentTime / duration) * 100 : 0}%, #3d2b1f ${duration ? (currentTime / duration) * 100 : 0}%)`
           }}
         />
-        <span className="text-xs font-mono w-10 shrink-0 text-right" style={{ color: '#92400e' }}>{formatDuration(duration || 0)}</span>
+        <span className="text-xs font-mono w-10 text-right" style={{ color: '#8b6b3d' }}>{formatDuration(duration || 0)}</span>
       </div>
 
       <div className="flex items-center justify-center gap-1">
-        <button
-          onClick={onPrev}
-          disabled={!hasPrev}
-          className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center transition-all"
-          style={{
-            backgroundColor: hasPrev ? '#3d2b1f' : '#2d1f14',
-            border: '1px solid #4a3728',
-            color: hasPrev ? '#b45309' : '#4a3728'
-          }}
-        >
-          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
-            <path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z" />
-          </svg>
+        <button onClick={onPrev} disabled={!hasPrev} className="w-8 h-8 rounded flex items-center justify-center" style={{ backgroundColor: hasPrev ? '#3d2b1f' : '#2d1b14', border: '1px solid #4a3020', color: hasPrev ? '#b8860b' : '#4a3020' }}>
+          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor"><path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z" /></svg>
         </button>
 
-        <button
-          onClick={skipBack}
-          disabled={!src}
-          className="w-10 h-8 shrink-0 rounded flex items-center justify-center text-xs font-bold"
-          style={{
-            backgroundColor: '#2d1f14',
-            border: '1px solid #4a3728',
-            color: src ? '#92400e' : '#4a3728'
-          }}
-        >
+        <button onClick={skipBack} disabled={!src} className="w-10 h-8 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: '#2d1b14', border: '1px solid #4a3020', color: src ? '#b8860b' : '#4a3020' }}>
           <span>-{SKIP_SECONDS}</span>
         </button>
 
-        <button
-          onClick={togglePlay}
-          disabled={!src}
-          className="w-12 h-12 shrink-0 rounded-full flex items-center justify-center transition-all"
-          style={{
-            backgroundColor: src ? '#b45309' : '#2d1f14',
-            border: '2px solid #78350f',
-            color: '#fef3c7'
-          }}
-        >
-          {loading ? (
-            <div className="w-6 h-6 border-2 border-amber-700 border-t-amber-500 rounded-full animate-spin" />
-          ) : playing ? (
-            <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-              <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" className="w-6 h-6 ml-0.5" fill="currentColor">
-              <path d="M8 5v14l11-7L8 5z" />
-            </svg>
-          )}
+        <button onClick={togglePlay} disabled={!src} className="w-12 h-12 rounded-full flex items-center justify-center transition-all" style={{ backgroundColor: src ? '#b8860b' : '#2d1b14', border: '3px solid #8b6914', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.3)' }}>
+          {loading ? <div className="w-6 h-6 border-2 border-amber-700 border-t-amber-500 rounded-full animate-spin" />
+          : playing ? <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" /></svg>
+          : <svg viewBox="0 0 24 24" className="w-6 h-6 ml-0.5 text-amber-900" fill="currentColor"><path d="M8 5v14l11-7L8 5z" /></svg>}
         </button>
 
-        <button
-          onClick={skipForward}
-          disabled={!src}
-          className="w-10 h-8 shrink-0 rounded flex items-center justify-center text-xs font-bold"
-          style={{
-            backgroundColor: '#2d1f14',
-            border: '1px solid #4a3728',
-            color: src ? '#92400e' : '#4a3728'
-          }}
-        >
+        <button onClick={skipForward} disabled={!src} className="w-10 h-8 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: '#2d1b14', border: '1px solid #4a3020', color: src ? '#b8860b' : '#4a3020' }}>
           <span>+{SKIP_SECONDS}</span>
         </button>
 
-        <button
-          onClick={onNext}
-          disabled={!hasNext}
-          className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center transition-all"
-          style={{
-            backgroundColor: hasNext ? '#3d2b1f' : '#2d1f14',
-            border: '1px solid #4a3728',
-            color: hasNext ? '#b45309' : '#4a3728'
-          }}
-        >
-          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
-            <path d="M6 18l8.5-6L6 6v12zm8.5 0V6h2v12h-2v-6z" />
-          </svg>
+        <button onClick={onNext} disabled={!hasNext} className="w-8 h-8 rounded flex items-center justify-center" style={{ backgroundColor: hasNext ? '#3d2b1f' : '#2d1b14', border: '1px solid #4a3020', color: hasNext ? '#b8860b' : '#4a3020' }}>
+          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm8.5 0V6h2v12h-2v-6z" /></svg>
         </button>
 
-        <button
-          onClick={stop}
-          disabled={!src}
-          className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center transition-all"
-          style={{
-            backgroundColor: src ? '#450a03' : '#2d1f14',
-            border: '1px solid #78350f',
-            color: src ? '#fca5a5' : '#4a3728'
-          }}
-        >
-          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
-            <path d="M6 6h12v12H6V6z" />
-          </svg>
+        <button onClick={stop} disabled={!src} className="w-8 h-8 rounded flex items-center justify-center" style={{ backgroundColor: src ? '#3d1008' : '#2d1b14', border: '1px solid #6b2008', color: src ? '#fca5a5' : '#4a3020' }}>
+          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor"><path d="M6 6h12v12H6V6z" /></svg>
         </button>
       </div>
     </div>
