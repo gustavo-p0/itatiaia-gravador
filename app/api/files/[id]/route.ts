@@ -2,10 +2,19 @@ import { NextResponse } from "next/server";
 import { google } from "googleapis";
 
 function getServiceAccountAuth() {
-  const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '{}');
+  const credsStr = process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '{}';
+  let creds;
+  try {
+    creds = JSON.parse(credsStr);
+  } catch (e) {
+    return null;
+  }
+  if (!creds.client_email || !creds.private_key) {
+    return null;
+  }
   return new google.auth.GoogleAuth({
     credentials: creds,
-    scopes: ['https://www.googleapis.com/auth/drive'],
+    scopes: ['https://www.googleapis.com/auth/drive.readonly'],
   });
 }
 
@@ -16,36 +25,25 @@ export async function GET(
   try {
     const { id } = await params;
     const auth = getServiceAccountAuth();
-    const authClient = await auth.getClient() as any;
-    const accessToken = authClient.credentials?.access_token;
-
-    if (!accessToken) {
-      return NextResponse.json({ error: 'No access token' }, { status: 401 });
+    if (!auth) {
+      return NextResponse.json({ error: 'Invalid credentials config' }, { status: 500 });
     }
 
-    const fileResponse = await fetch(
-      `https://www.googleapis.com/drive/v3/files/${id}?fields=name`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-
-    const fileData = await fileResponse.json();
-
-    if (fileData.error) {
-      return NextResponse.json({ error: fileData.error.message || 'API error' }, { status: 500 });
-    }
+    const drive = google.drive({ version: 'v3', auth });
+    
+    const fileResponse = await drive.files.get({
+      fileId: id,
+      fields: 'name',
+    });
 
     const url = `https://www.googleapis.com/drive/v3/files/${id}?alt=media`;
 
     return NextResponse.json({ 
       url,
-      name: fileData.name 
+      name: fileResponse.data.name 
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting file URL:', error);
-    return NextResponse.json({ error: 'Failed to get file' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to get file' }, { status: 500 });
   }
 }
