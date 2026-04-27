@@ -127,8 +127,17 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
     try {
       const audio = audioRef.current;
       if (!audio) return;
-      const stream = (audio as any).captureStream();
-      if (!stream) return;
+      
+      const canCapture = typeof (audio as any).captureStream === 'function' || 
+                        typeof (audio as any).mozCaptureStream === 'function' ||
+                        typeof (audio as any).webkitCaptureStream === 'function';
+      if (!canCapture) {
+        console.log('captureStream not supported on this browser');
+        return;
+      }
+      
+      const stream = (audio as any).captureStream?.() || (audio as any).mozCaptureStream?.() || (audio as any).webkitCaptureStream?.();
+      if (!stream || stream.getAudioTracks().length === 0) return;
       const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
