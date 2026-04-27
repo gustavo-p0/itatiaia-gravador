@@ -2,7 +2,16 @@ import { NextResponse } from "next/server";
 import { google } from "googleapis";
 
 function getServiceAccountAuth() {
-  const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '{}');
+  const credsStr = process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '{}';
+  let creds;
+  try {
+    creds = JSON.parse(credsStr);
+  } catch (e) {
+    return null;
+  }
+  if (!creds.client_email || !creds.private_key) {
+    return null;
+  }
   return new google.auth.GoogleAuth({
     credentials: creds,
     scopes: ['https://www.googleapis.com/auth/drive.readonly'],
@@ -12,33 +21,22 @@ function getServiceAccountAuth() {
 export async function GET() {
   try {
     const auth = getServiceAccountAuth();
-    const authClient = await auth.getClient() as any;
-    const accessToken = authClient.credentials?.access_token;
-
-    if (!accessToken) {
-      return NextResponse.json({ error: 'No access token' }, { status: 401 });
+    if (!auth) {
+      return NextResponse.json({ error: 'Invalid credentials config' }, { status: 500 });
     }
-
+    
+    const drive = google.drive({ version: 'v3', auth });
     const folderId = '1kByEbTVDBijyihxl2BNBN1sTFK8be8e4';
 
-    const response = await fetch(
-      `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+name+contains+'.aac'&fields=files(id,name,createdTime,size)&orderBy=createdTime desc`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const response = await drive.files.list({
+      q: `'${folderId}' in parents and name contains '.aac'`,
+      fields: 'files(id,name,createdTime,size)',
+      orderBy: 'createdTime desc',
+    });
 
-    const data = await response.json();
-
-    if (data.error) {
-      return NextResponse.json({ error: data.error.message || 'API error' }, { status: 500 });
-    }
-
-    return NextResponse.json({ files: data.files || [] });
-  } catch (error) {
+    return NextResponse.json({ files: response.data.files || [] });
+  } catch (error: any) {
     console.error('Error listing files:', error);
-    return NextResponse.json({ error: 'Failed to list files' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to list files' }, { status: 500 });
   }
 }
