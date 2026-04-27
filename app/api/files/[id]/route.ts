@@ -7,9 +7,10 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    const token = JSON.parse(process.env.GDRIVE_ACCESS_TOKEN || '{}');
 
     const oauth2Client = new google.auth.OAuth2();
-    oauth2Client.setCredentials({ access_token: process.env.GDRIVE_ACCESS_TOKEN });
+    oauth2Client.setCredentials(token);
 
     const drive = google.drive({ version: 'v3', auth: oauth2Client });
 
@@ -18,7 +19,7 @@ export async function GET(
       fields: 'name',
     });
 
-    const url = `https://www.googleapis.com/drive/v3/files/${id}?alt=media&key=${process.env.GOOGLE_API_KEY}`;
+    const url = `https://www.googleapis.com/drive/v3/files/${id}?alt=media`;
 
     return NextResponse.json({ 
       url,

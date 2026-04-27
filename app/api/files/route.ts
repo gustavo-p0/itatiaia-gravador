@@ -5,8 +5,10 @@ const FOLDER_ID = '1kByEbTVDBijyihxl2BNBN1sTFK8be8e4';
 
 export async function GET() {
   try {
+    const token = JSON.parse(process.env.GDRIVE_ACCESS_TOKEN || '{}');
+    
     const oauth2Client = new google.auth.OAuth2();
-    oauth2Client.setCredentials({ access_token: process.env.GDRIVE_ACCESS_TOKEN });
+    oauth2Client.setCredentials(token);
 
     const drive = google.drive({ version: 'v3', auth: oauth2Client });
 
