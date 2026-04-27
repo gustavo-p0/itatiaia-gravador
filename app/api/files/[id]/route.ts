@@ -33,15 +33,23 @@ export async function GET(
     
     const fileResponse = await drive.files.get({
       fileId: id,
-      fields: 'name',
+      fields: 'name,mimeType',
     });
 
-    const url = `https://www.googleapis.com/drive/v3/files/${id}?alt=media`;
+    const name = fileResponse.data.name || 'audio';
 
-    return NextResponse.json({ 
-      url,
-      name: fileResponse.data.name 
+    const mediaResponse = await drive.files.get({
+      fileId: id,
+      alt: 'media',
+    }, {
+      responseType: 'stream',
     });
+
+    const headers = new Headers();
+    headers.set('Content-Type', 'audio/aac');
+    headers.set('Content-Disposition', `inline; filename="${name}"`);
+
+    return new NextResponse(mediaResponse.data as any, { headers });
   } catch (error: any) {
     console.error('Error getting file URL:', error);
     return NextResponse.json({ error: error.message || 'Failed to get file' }, { status: 500 });
