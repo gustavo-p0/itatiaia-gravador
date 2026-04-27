@@ -83,14 +83,14 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(180deg, #3d2b1f 0%, #2d1b14 50%, #1a1209 100%)' }}>
       <header className="px-4 py-3 border-b-2" style={{ borderColor: '#4a3020', background: 'linear-gradient(180deg, #3d2b1f 0%, #2d1b14 100%)' }}>
-        <div className="max-w-lg mx-auto flex items-center justify-between">
+        <div className="max-w-lg mx-auto flex items-center justify-between lg:justify-center">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #cd9b32 0%, #a07020 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)' }}>
               <svg viewBox="0 0 24 24" className="w-6 h-6 text-amber-100" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" /></svg>
             </div>
             <h1 className="text-lg font-bold italic" style={{ fontFamily: 'Georgia, serif', color: '#d4a84b', textShadow: '0 0 10px rgba(212,168,75,0.5)' }}>Itatiaia</h1>
           </div>
-          <button onClick={fetchFiles} className="p-2 rounded" style={{ color: '#8b6b3d' }} title="Atualizar">
+          <button onClick={fetchFiles} className="p-2 rounded lg:absolute lg:right-4" style={{ color: '#8b6b3d' }} title="Atualizar">
             <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" /></svg>
           </button>
         </div>
