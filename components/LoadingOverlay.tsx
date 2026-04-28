@@ -7,9 +7,10 @@ export default function LoadingOverlay() {
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-20 h-20 rounded-sm bg-gradient-to-br from-neutral-800 to-neutral-950 border border-neutral-600" style={{ transform: 'rotate(-10deg) translateX(-8px)' }} />
           <div className="absolute w-20 h-20 rounded-sm bg-gradient-to-br from-neutral-800 to-neutral-950 border border-neutral-600 flex items-center justify-center" style={{ animation: 'slideOut 1.5s ease-in-out infinite' }}>
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-neutral-700 to-neutral-900" />
+            <div className="absolute w-16 h-16 rounded-full bg-gradient-to-br from-neutral-900 to-black" />
             <div className="absolute w-4 h-4 rounded-full bg-neutral-950" />
-            <div className="absolute w-2 h-2 rounded-full bg-neutral-500" />
+            <div className="absolute w-2 h-2 rounded-full bg-amber-500" />
+            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-amber-600 animate-spin" style={{ animationDuration: '2s' }} />
           </div>
         </div>
       </div>
