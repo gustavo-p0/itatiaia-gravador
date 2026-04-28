@@ -20,7 +20,7 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/api/files`);
+      const res = await fetch(`${API_BASE}/api/files/`);
       const data = await res.json();
       if (data.files) setFiles(data.files);
       else if (data.error) setError(data.error);
@@ -34,7 +34,7 @@ export default function HomePage() {
   useEffect(() => { fetchFiles(); }, [fetchFiles]);
 
   const fetchAudioUrl = useCallback(async (fileId: string) => {
-    setAudioUrl(`${API_BASE}/api/files/${fileId}`);
+    setAudioUrl(`${API_BASE}/api/files/${fileId}/`);
   }, []);
 
   useEffect(() => {
