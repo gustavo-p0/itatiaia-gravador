@@ -16,7 +16,7 @@ export default function LoadingOverlay() {
         </div>
       </div>
       <p className="text-sm font-medium" style={{ color: '#d4a84b' }}>Carregando áudio...</p>
-      <p className="text-xs mt-1" style={{ color: '#8b6b3d' }}>Acordando o defunto...</p>
+      <p className="text-xs mt-1" style={{ color: '#8b6b3d' }}>Acordando o defunto da soneca... 😴💤</p>
     </div>
   );
 }
