@@ -20,12 +20,19 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/api/files/`);
-      const data = await res.json();
-      if (data.files) setFiles(data.files);
-      else if (data.error) setError(data.error);
+      const res = await fetch(`${API_BASE}/api/files/`, { 
+        credentials: 'same-origin',
+        redirect: 'follow'
+      });
+      if (!res.ok) {
+        setError(`Erro ${res.status}: Não foi possível carregar`);
+      } else {
+        const data = await res.json();
+        if (data.files) setFiles(data.files);
+        else if (data.error) setError(data.error);
+      }
     } catch (err) {
-      setError("Erro ao carregar arquivos.");
+      setError("Erro ao carregar. Verifique a conexão.");
     } finally {
       setLoading(false);
     }
@@ -45,7 +52,10 @@ export default function HomePage() {
     if (currentFile) fetchAudioUrl(currentFile.id);
   }, [currentFile, fetchAudioUrl]);
 
-  const handleFileSelect = useCallback((file: FileItem) => setCurrentFile(file), []);
+  const handleFileSelect = useCallback((file: FileItem) => {
+    setCurrentFile(file);
+    setAudioUrl(`${API_BASE}/api/files/${file.id}/`);
+  }, []);
   const handlePrev = useCallback(() => {
     if (!currentFile) return;
     const idx = files.findIndex(f => f.id === currentFile.id);
