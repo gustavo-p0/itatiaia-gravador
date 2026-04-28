@@ -147,6 +147,39 @@ useEffect(() => {
 
   useEffect(() => {
     const audio = audioRef.current;
+    if (!audio || !fileId || !src) return;
+
+    const storageKey = `audio_pos_${fileId}`;
+    const savedTime = localStorage.getItem(storageKey);
+    if (savedTime && audio.src) {
+      const time = parseFloat(savedTime);
+      if (!isNaN(time) && time > 0) {
+        audio.currentTime = time;
+      }
+    }
+  }, [fileId, src]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !fileId) return;
+
+    const handleLoadedMetadata = () => {
+      const storageKey = `audio_pos_${fileId}`;
+      const savedTime = localStorage.getItem(storageKey);
+      if (savedTime) {
+        const time = parseFloat(savedTime);
+        if (!isNaN(time) && time > 0 && time < audio.duration) {
+          audio.currentTime = time;
+        }
+      }
+    };
+
+    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    return () => audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+  }, [fileId]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
     if (!audio) return;
     
     let attempts = 0;
