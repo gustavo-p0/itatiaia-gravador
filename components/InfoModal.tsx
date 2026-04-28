@@ -90,7 +90,7 @@ export default function InfoModal() {
         <span className="text-sm font-medium text-white">Enviar mensagem pro programa</span>
       </a>
 
-      <details className="text-xs" style={{ color: '#4a3020' }}>
+      <details className="text-xs text-center" style={{ color: '#4a3020' }}>
         <summary className="cursor-pointer hover:underline mb-1">Aviso legal e titularidade</summary>
         <div className="text-left mt-2 p-3 rounded" style={{ background: '#fef3c7' }}>
           <p className="mb-2" style={{ color: '#5a4020' }}>Este aplicativo é um projeto independente e não oficial, criado por terceiros, sem vínculo societário, afiliação, endosso, patrocínio ou autorização da Rádio Itatiaia, Rede Itasat ou do programa Dona da Noite.</p>
