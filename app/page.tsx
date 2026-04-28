@@ -139,7 +139,9 @@ export default function HomePage() {
                   <div className="flex justify-center mb-4">
                     <div className="relative w-24 h-24">
                       <div className="absolute inset-0 rounded-full disc-grooves animate-spin" style={{ animationDuration: playing ? '3s' : '20s', animationPlayState: playing ? 'running' : 'paused' }} />
-                      <div className="absolute inset-[26%] rounded-full disc-center animate-spin" style={{ animationDuration: playing ? '3s' : '20s', animationPlayState: playing ? 'running' : 'paused' }} />
+                      <div className="absolute inset-[26%] rounded-full disc-center animate-spin overflow-hidden" style={{ animationDuration: playing ? '3s' : '20s', animationPlayState: playing ? 'running' : 'paused' }}>
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/20 to-transparent h-full w-full transform -rotate-45" />
+                      </div>
                       <div className="absolute inset-0 rounded-full flex items-center justify-center">
                         <div className="w-3 h-3 rounded-full bg-amber-900 border-2 border-amber-700" />
                       </div>
