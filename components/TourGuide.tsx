@@ -69,38 +69,31 @@ export default function TourGuide({ steps, onComplete }: TourGuideProps) {
   const progress = ((currentStep + 1) / steps.length) * 100;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999]">
+    <div className="fixed inset-0 z-[9999] pointer-events-none">
       {step?.targetId && (
-        <>
-          <div 
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-all duration-500"
-            onClick={handleSkip}
-          />
-          
-          <div className="absolute border-2 border-dashed rounded-lg pointer-events-none animate-pulse" style={{
-            borderColor: '#d4a84b',
-            background: 'transparent',
-            boxShadow: '0 0 0 9999px rgba(0,0,0,0.7)',
-            ...(() => {
-              const element = document.getElementById(step.targetId);
-              if (element) {
-                const rect = element.getBoundingClientRect();
-                return {
-                  top: rect.top - 8,
-                  left: rect.left - 8,
-                  width: rect.width + 16,
-                  height: rect.height + 16,
-                };
-              }
-              return {};
-            })()
-          }} />
-        </>
+        <div className="absolute border-2 border-dashed rounded-lg" style={{
+          borderColor: '#d4a84b',
+          background: 'transparent',
+          boxShadow: '0 0 0 9999px rgba(0,0,0,0.85)',
+          ...(() => {
+            const element = document.getElementById(step.targetId);
+            if (element) {
+              const rect = element.getBoundingClientRect();
+              return {
+                top: rect.top - 4,
+                left: rect.left - 4,
+                width: rect.width + 8,
+                height: rect.height + 8,
+              };
+            }
+            return {};
+          })()
+        }} />
       )}
 
       <div 
         ref={tooltipRef}
-        className="fixed w-80 rounded-xl shadow-2xl"
+        className="fixed w-80 rounded-xl shadow-2xl pointer-events-auto"
         style={{ 
           top: step?.targetId ? undefined : '50%',
           left: step?.targetId ? tooltipPosition.left : '50%',
