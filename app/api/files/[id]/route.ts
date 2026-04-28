@@ -36,65 +36,34 @@ export async function GET(
     });
 
     const fileSize = parseInt(fileResponse.data.size || '0', 10);
+    const mimeType = fileResponse.data.mimeType || 'audio/aac';
 
     const authClient = await auth.getClient() as any;
-    const accessToken = await authClient.getAccessToken?.() || authClient.accessToken || authClient.credentials?.access_token;
+    let accessToken = await authClient.getAccessToken?.()?.then((r: any) => r?.token);
+    accessToken = accessToken || authClient.accessToken || authClient.credentials?.access_token;
 
     if (!accessToken) {
       return NextResponse.json({ error: 'No access token' }, { status: 401 });
     }
 
-    const rangeHeader = request.headers.get('range');
-    let start = 0;
-    let end = fileSize - 1;
-    let isPartial = false;
-
-    if (rangeHeader) {
-      const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
-      if (match) {
-        start = parseInt(match[1], 10);
-        if (match[2]) {
-          end = Math.min(parseInt(match[2], 10), fileSize - 1);
-        }
-        isPartial = true;
-      }
-    }
-
-    const headers: Record<string, string> = {
-      'Authorization': `Bearer ${accessToken}`,
-    };
-
-    if (isPartial) {
-      headers['Range'] = `bytes=${start}-${end}`;
-    }
-
     const response = await fetch(
       `https://www.googleapis.com/drive/v3/files/${id}?alt=media`,
-      { headers }
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      }
     );
 
-    if (!response.ok && response.status !== 206) {
+    if (!response.ok) {
       console.error('Drive error:', response.status, response.statusText);
-      return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to fetch audio' }, { status: 500 });
     }
 
     const responseHeaders = new Headers();
-    responseHeaders.set('Content-Type', fileResponse.data.mimeType || 'audio/mp4');
+    responseHeaders.set('Content-Type', mimeType);
     responseHeaders.set('Accept-Ranges', 'bytes');
     responseHeaders.set('Cache-Control', 'public, max-age=3600');
-
-    if (isPartial) {
-      const contentLength = response.headers.get('content-length') || String(end - start + 1);
-      responseHeaders.set('Content-Length', contentLength);
-      responseHeaders.set('Content-Range', `bytes ${start}-${end}/${fileSize}`);
-      return new NextResponse(response.body, {
-        status: 206,
-        headers: responseHeaders,
-      });
-    }
-
-    const contentLength = response.headers.get('content-length') || String(fileSize);
-    responseHeaders.set('Content-Length', contentLength);
 
     return new NextResponse(response.body, {
       status: 200,
