@@ -15,10 +15,11 @@ interface AudioPlayerProps {
   onSongRecognized?: (song: { title: string; artist: string; album: string | null }) => void;
   loadingAudio?: boolean;
   onAudioReady?: () => void;
+  onLoadingStart?: () => void;
   onPlayingChange?: (playing: boolean) => void;
 }
 
-export default function AudioPlayer({ src, fileId, onEnded, onPrev, onNext, hasPrev, hasNext, onClear, onSongRecognized, loadingAudio, onAudioReady, onPlayingChange }: AudioPlayerProps) {
+export default function AudioPlayer({ src, fileId, onEnded, onPrev, onNext, hasPrev, hasNext, onClear, onSongRecognized, loadingAudio, onAudioReady, onLoadingStart, onPlayingChange }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -62,6 +63,7 @@ useEffect(() => {
       }
     };
     const handleWaiting = () => { setLoading(true); setError(null); };
+    const handleLoadStart = () => { setLoading(true); if (onAudioReady) onAudioReady(); if (onLoadingStart) onLoadingStart(); setError(null); };
     const handlePlaying = () => { 
       setLoading(false); 
       setError(null);
@@ -111,6 +113,7 @@ useEffect(() => {
     };
 
     audio.addEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("loadstart", handleLoadStart);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("canplaythrough", handleCanPlayThrough);
     audio.addEventListener("ended", handleEnded);
@@ -121,6 +124,7 @@ useEffect(() => {
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("loadstart", handleLoadStart);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("canplaythrough", handleCanPlayThrough);
       audio.removeEventListener("ended", handleEnded);
