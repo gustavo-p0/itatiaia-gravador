@@ -63,7 +63,7 @@ useEffect(() => {
       }
     };
     const handleWaiting = () => { setLoading(true); setError(null); };
-    const handleLoadStart = () => { setLoading(true); if (onAudioReady) onAudioReady(); if (onLoadingStart) onLoadingStart(); setError(null); };
+    const handleLoadStart = () => { setLoading(true); if (onLoadingStart) onLoadingStart(); setError(null); };
     const handlePlaying = () => { 
       setLoading(false); 
       setError(null);
@@ -75,7 +75,6 @@ useEffect(() => {
         setPlaying(true);
         isAutoPlayingRef.current = false;
       }
-      if (onAudioReady) onAudioReady();
       if (onPlayingChange) onPlayingChange(true);
       if (audio.duration && isFinite(audio.duration) && duration === 0) {
         setDuration(audio.duration);
@@ -100,6 +99,7 @@ useEffect(() => {
     };
     const handleCanPlay = () => {
       setLoading(false);
+      if (onAudioReady) onAudioReady();
       if (audio.duration && isFinite(audio.duration)) {
         setDuration(audio.duration);
       }
@@ -107,6 +107,7 @@ useEffect(() => {
 
     const handleCanPlayThrough = () => {
       setLoading(false);
+      if (onAudioReady) onAudioReady();
       if (audio.duration && isFinite(audio.duration) && audio.duration > 0) {
         setDuration(audio.duration);
       }
