@@ -118,7 +118,7 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(180deg, #3d2b1f 0%, #2d1b14 50%, #1a1209 100%)' }}>
       <header className="px-4 py-3 border-b-2" style={{ borderColor: '#4a3020', background: 'linear-gradient(180deg, #3d2b1f 0%, #2d1b14 100%)' }}>
         <div className="max-w-lg mx-auto flex items-center justify-between lg:justify-center">
-          <div className="flex items-center gap-3">
+          <div id="tour-header" className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #cd9b32 0%, #a07020 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)' }}>
               <svg viewBox="0 0 24 24" className="w-6 h-6 text-amber-100" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" /></svg>
             </div>
@@ -134,7 +134,7 @@ export default function HomePage() {
         <div className="flex-1 flex flex-col p-4 overflow-y-auto">
           <div className="flex-1 flex flex-col items-center justify-center">
             <div className="w-full max-w-sm rounded-lg p-4" style={{ background: 'linear-gradient(180deg, #d1d5db 0%, #9ca3af 50%, #6b7280 100%)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.5), 0 4px 8px rgba(0,0,0,0.4), inset 0 0 20px rgba(0,0,0,0.1)' }}>
-              <div className="relative">
+              <div id="tour-player" className="relative">
                 <div className="rounded-2xl p-6 mb-4" style={{ background: 'linear-gradient(180deg, #2d251b 0%, #1a1510 100%)', boxShadow: 'inset 0 0 40px rgba(0,0,0,0.8)' }}>
                   <div className="flex justify-center mb-4">
                     <div className="relative w-24 h-24">
@@ -161,7 +161,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-        <aside className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l" style={{ borderColor: '#4a3020', background: 'linear-gradient(180deg, #2d1b14 0%, #1a0f08 100%)' }}>
+        <aside id="tour-recordings" className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l" style={{ borderColor: '#4a3020', background: 'linear-gradient(180deg, #2d1b14 0%, #1a0f08 100%)' }}>
           <div className="p-3 border-b" style={{ borderColor: '#3d2515' }}>
             <h3 className="text-xs uppercase tracking-widest" style={{ color: '#8b6b3d', fontFamily: 'sans-serif' }}>Gravações ({files.length})</h3>
           </div>
@@ -172,7 +172,7 @@ export default function HomePage() {
       </main>
 
       {showPwaPrompt && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 w-auto max-w-xs p-3 rounded-lg shadow-lg z-50" style={{ background: 'linear-gradient(180deg, #3d2b1f 0%, #2d1b14 100%)', border: '1px solid #4a3020' }}>
+        <div id="tour-pwa" className="fixed top-20 left-1/2 -translate-x-1/2 w-auto max-w-xs p-3 rounded-lg shadow-lg z-50" style={{ background: 'linear-gradient(180deg, #3d2b1f 0%, #2d1b14 100%)', border: '1px solid #4a3020' }}>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg, #cd9b32 0%, #a07020 100%)' }}>
               <svg viewBox="0 0 24 24" className="w-4 h-4 text-amber-100" fill="currentColor"><path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm-5 16H7v-2h5v2zm5-4H7v-2h10v2z" /></svg>
@@ -204,29 +204,29 @@ export default function HomePage() {
       <TourGuide
         steps={[
           {
-            title: "Bem-vindo ao Dona da Noite!",
-            content: "Este app permite ouvir as gravações do programa quando e onde quiser. É só apertar play!",
-            position: 'top'
+            targetId: "tour-header",
+            title: "Bem-vindo ao Dona da Noite! 🎵",
+            content: "Este app permite ouvir as gravações do programa quando e onde quiser. É só apertar play!"
           },
           {
-            title: "Escolha sua gravação",
-            content: "Aqui você encontra todas as gravações disponíveis. Toque em uma para selecionar.",
-            position: 'right'
+            targetId: "tour-recordings",
+            title: "Suas gravações",
+            content: "Aqui você encontra todas as gravações disponíveis. Toque em uma para selecionar."
           },
           {
+            targetId: "tour-player",
             title: "Controles do player",
-            content: "Use os botões para avançar, voltar ou pular para próxima gravação. O tempo é salvo automaticamente!",
-            position: 'top'
+            content: "Use os botões para avançar, voltar ou pular para próxima gravação. O tempo é salvo automaticamente!"
           },
           {
+            targetId: "tour-pwa",
             title: "Quer ouvir offline?",
-            content: "Toque em 'Instalar app' no topo para salvar no seu celular e ouvir sem internet!",
-            position: 'bottom'
+            content: "Toque em 'Instalar app' para salvar no seu celular e ouvir sem internet!"
           },
           {
-            title: "Fale com a equipe",
-            content: "Tem feedback ou quer participar? Mande uma mensagem direto pelo WhatsApp!",
-            position: 'top'
+            targetId: "tour-whatsapp",
+            title: "Mensagem para o programa",
+            content: "Quer participar, mandar feedback ou pedir uma música? Mande uma mensagem pelo WhatsApp!"
           }
         ]}
         onComplete={() => {}}

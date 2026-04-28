@@ -40,8 +40,8 @@ export default function InfoModal() {
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <button 
+<div id="tour-whatsapp" className="flex flex-col gap-2">
+        <button
         onClick={() => setIsOpen(true)}
         className="flex items-center gap-2 p-3 rounded-lg w-full transition-colors"
         style={{ background: 'linear-gradient(180deg, #3d2b1f 0%, #2d1b14 100%)', border: '1px solid #4a3020' }}

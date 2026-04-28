@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 interface TourStep {
+  targetId: string;
   title: string;
   content: string;
-  position?: 'top' | 'bottom' | 'left' | 'right';
 }
 
 interface TourGuideProps {
@@ -16,65 +17,118 @@ interface TourGuideProps {
 export default function TourGuide({ steps, onComplete }: TourGuideProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [visible, setVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const hasSeenTour = localStorage.getItem('hasSeenTour');
+    setMounted(true);
+    const hasSeenTour = localStorage.getItem('hasSeenTourDonaNoite');
     if (!hasSeenTour) {
-      setTimeout(() => setVisible(true), 1500);
+      setTimeout(() => setVisible(true), 2000);
     }
   }, []);
+
+  useEffect(() => {
+    if (visible && mounted) {
+      const step = steps[currentStep];
+      if (step?.targetId) {
+        const element = document.getElementById(step.targetId);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          const scrollY = window.scrollY;
+          
+          setTooltipPosition({
+            top: rect.bottom + scrollY + 12,
+            left: Math.max(16, rect.left + rect.width / 2 - 160)
+          });
+        }
+      }
+    }
+  }, [currentStep, visible, mounted, steps]);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      localStorage.setItem('hasSeenTour', 'true');
+      localStorage.setItem('hasSeenTourDonaNoite', 'true');
       setVisible(false);
       onComplete();
     }
   };
 
   const handleSkip = () => {
-    localStorage.setItem('hasSeenTour', 'true');
+    localStorage.setItem('hasSeenTourDonaNoite', 'true');
     setVisible(false);
     onComplete();
   };
 
-  if (!visible) return null;
+  if (!mounted || !visible) return null;
 
   const step = steps[currentStep];
   const progress = ((currentStep + 1) / steps.length) * 100;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleSkip} />
-      
+  return createPortal(
+    <div className="fixed inset-0 z-[9999]">
+      {step?.targetId && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-all duration-500"
+            onClick={handleSkip}
+          />
+          
+          <div className="absolute border-2 border-dashed rounded-lg pointer-events-none animate-pulse" style={{
+            borderColor: '#d4a84b',
+            background: 'transparent',
+            boxShadow: '0 0 0 9999px rgba(0,0,0,0.7)',
+            ...(() => {
+              const element = document.getElementById(step.targetId);
+              if (element) {
+                const rect = element.getBoundingClientRect();
+                return {
+                  top: rect.top - 8,
+                  left: rect.left - 8,
+                  width: rect.width + 16,
+                  height: rect.height + 16,
+                };
+              }
+              return {};
+            })()
+          }} />
+        </>
+      )}
+
       <div 
-        className="relative mx-4 max-w-sm rounded-xl p-5 shadow-2xl animate-pulse-glow"
+        ref={tooltipRef}
+        className="fixed w-80 rounded-xl shadow-2xl"
         style={{ 
+          top: step?.targetId ? undefined : '50%',
+          left: step?.targetId ? tooltipPosition.left : '50%',
+          transform: step?.targetId ? undefined : 'translate(-50%, -50%)',
           background: 'linear-gradient(180deg, #3d2b1f 0%, #2d1b14 100%)',
           border: '2px solid #d4a84b',
-          animation: 'pulse-glow 2s ease-in-out infinite'
+          zIndex: 10000,
+          animation: 'fadeIn 0.3s ease'
         }}
       >
-        <div className="mb-4">
-          <div className="h-2 w-full rounded-full overflow-hidden" style={{ backgroundColor: '#4a3020' }}>
+        <div className="mb-3">
+          <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ backgroundColor: '#4a3020' }}>
             <div 
-              className="h-full rounded-full transition-all duration-500"
+              className="h-full rounded-full transition-all duration-300"
               style={{ width: `${progress}%`, backgroundColor: '#d4a84b' }}
             />
           </div>
           <p className="text-xs mt-2 text-right" style={{ color: '#8b6b3d' }}>
-            {currentStep + 1} de {steps.length}
+            Passo {currentStep + 1} de {steps.length}
           </p>
         </div>
 
-        <h3 className="text-lg font-bold mb-2" style={{ color: '#d4a84b', fontFamily: 'Georgia, serif' }}>
-          {step.title}
+        <h3 className="text-base font-bold mb-2" style={{ color: '#d4a84b', fontFamily: 'Georgia, serif' }}>
+          {step?.title}
         </h3>
         
         <p className="text-sm mb-4" style={{ color: '#a08060' }}>
-          {step.content}
+          {step?.content}
         </p>
 
         <div className="flex gap-2">
@@ -90,21 +144,29 @@ export default function TourGuide({ steps, onComplete }: TourGuideProps) {
           
           <button 
             onClick={handleSkip}
-            className="px-3 py-2 rounded text-sm ml-auto"
+            className="px-3 py-2 rounded text-sm"
             style={{ color: '#6b5030' }}
           >
-            Pular
+            Pular tour
           </button>
           
           <button 
             onClick={handleNext}
-            className="px-4 py-2 rounded text-sm font-bold"
+            className="px-4 py-2 rounded text-sm font-bold ml-auto"
             style={{ backgroundColor: '#d4a84b', color: '#2d1b14' }}
           >
-            {currentStep < steps.length - 1 ? 'Próximo' : 'Começar'}
+            {currentStep < steps.length - 1 ? 'Próximo' : 'Começar a usar!'}
           </button>
         </div>
       </div>
-    </div>
+
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>,
+    document.body
   );
 }
