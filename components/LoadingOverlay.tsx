@@ -1,5 +1,6 @@
 "use client";
 
+// Loading overlay with sliding vinyl animation
 export default function LoadingOverlay() {
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center z-10" style={{ background: 'linear-gradient(180deg, #2d251b 0%, #1a1510 100%)', boxShadow: 'inset 0 0 40px rgba(0,0,0,0.8)' }}>
