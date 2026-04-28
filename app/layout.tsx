@@ -16,8 +16,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Itatiaia Player",
-  description: "Player para gravações da Rádio Itatiaia",
+  title: "Itatiaia - Dona da Noite",
+  description: "Player para gravações do programa Dona da Noite - Itatiaia",
 };
 
 export const viewport: Viewport = {

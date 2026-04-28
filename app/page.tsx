@@ -94,7 +94,7 @@ export default function HomePage() {
             <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #cd9b32 0%, #a07020 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)' }}>
               <svg viewBox="0 0 24 24" className="w-6 h-6 text-amber-100" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" /></svg>
             </div>
-            <h1 className="text-lg font-bold italic" style={{ fontFamily: 'Georgia, serif', color: '#d4a84b', textShadow: '0 0 10px rgba(212,168,75,0.5)' }}>Itatiaia</h1>
+            <h1 className="text-lg font-bold italic" style={{ fontFamily: 'Georgia, serif', color: '#d4a84b', textShadow: '0 0 10px rgba(212,168,75,0.5)' }}>Itatiaia - Dona da Noite</h1>
           </div>
           <button onClick={fetchFiles} className="p-2 rounded lg:absolute lg:right-4" style={{ color: '#8b6b3d' }} title="Atualizar">
             <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" /></svg>
@@ -117,7 +117,7 @@ export default function HomePage() {
                 <h2 className="text-center italic font-bold mb-1" style={{ color: '#d4a84b', fontFamily: 'Georgia, serif' }}>
                   {currentFile ? formatFileName(currentFile.name) : "Nenhuma faixa"}
                 </h2>
-                <p className="text-center text-sm" style={{ color: '#8b6b3d' }}>Rádio Itatiaia FM</p>
+                <p className="text-center text-sm" style={{ color: '#8b6b3d' }}>Dona da Noite FM</p>
               </div>
               <div className="rounded p-3" style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #d4a84b 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.3)', border: '1px solid #a07020' }}>
                 <AudioPlayer src={audioUrl} onPrev={handlePrev} onNext={handleNext} hasPrev={currentIndex > 0} hasNext={currentIndex < files.length - 1} onEnded={handleEnded} onClear={handleClear} onSongRecognized={setCurrentSong} />
