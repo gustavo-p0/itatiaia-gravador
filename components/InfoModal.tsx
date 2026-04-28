@@ -33,10 +33,6 @@ export default function InfoModal() {
             <p className="text-xs" style={{ color: '#6b5030' }}>Transmitido pela 95,7 FM, 610 AM, rede Itasat e site oficial.</p>
             <p className="text-xs" style={{ color: '#6b5030' }}>WhatsApp: (31) 99996-7074</p>
           </div>
-          
-          <p className="text-xs italic pt-2" style={{ color: '#5a4030' }}>
-            Este app é um reprodução independente. Não possui vínculo com a RNI ou Rádio Itatiaia. As gravações são de autoria do programa.
-          </p>
         </div>
       </div>
     );

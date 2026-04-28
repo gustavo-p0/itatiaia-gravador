@@ -176,6 +176,12 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      <footer className="p-4 text-center" style={{ borderColor: '#4a3020' }}>
+        <p className="text-xs" style={{ color: '#5a4030' }}>
+          App independente. Sem vínculo com Rede Itasat ou Rádio Itatiaia. As gravações são de autoria do programa.
+        </p>
+      </footer>
     </div>
   );
 }
