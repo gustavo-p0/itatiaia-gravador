@@ -161,19 +161,16 @@ export default function HomePage() {
       </main>
 
       {showPwaPrompt && (
-        <div className="fixed bottom-4 left-4 right-4 lg:left-auto lg:right-4 lg:w-80 p-4 rounded-lg shadow-lg z-50 animate-pulse-glow" style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #d4a84b 100%)', border: '2px solid #8b6914' }}>
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#8b6914' }}>
-              <svg viewBox="0 0 24 24" className="w-5 h-5 text-amber-100" fill="currentColor"><path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm-5 16H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z" /></svg>
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 w-auto max-w-xs p-3 rounded-lg shadow-lg z-50" style={{ background: 'linear-gradient(180deg, #3d2b1f 0%, #2d1b14 100%)', border: '1px solid #4a3020' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg, #cd9b32 0%, #a07020 100%)' }}>
+              <svg viewBox="0 0 24 24" className="w-4 h-4 text-amber-100" fill="currentColor"><path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm-5 16H7v-2h5v2zm5-4H7v-2h10v2z" /></svg>
             </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-amber-900 mb-1">Instalar App</h3>
-              <p className="text-sm text-amber-800 mb-3">Adicione à tela inicial para ouvir offline!</p>
-              <div className="flex gap-2">
-                <button onClick={handleInstallPwa} className="px-3 py-1 rounded text-sm font-bold" style={{ backgroundColor: '#8b6914', color: '#fef3c7' }}>Instalar</button>
-                <button onClick={() => setShowPwaPrompt(false)} className="px-3 py-1 rounded text-sm" style={{ backgroundColor: '#fef3c7', color: '#8b6914', border: '1px solid #a07020' }}>Agora não</button>
-              </div>
-            </div>
+            <p className="text-sm text-amber-200 flex-1">Instalar app para ouvir offline</p>
+            <button onClick={handleInstallPwa} className="px-2 py-1 rounded text-xs font-medium" style={{ backgroundColor: '#b8860b', color: '#fef3c7' }}>Instalar</button>
+            <button onClick={() => setShowPwaPrompt(false)} className="p-1 rounded" style={{ color: '#8b6b3d' }}>
+              <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" /></svg>
+            </button>
           </div>
         </div>
       )}

@@ -51,6 +51,11 @@ useEffect(() => {
       if (storageKey) localStorage.removeItem(storageKey); 
       onEnded?.(); 
     };
+    const handleLoadedMetadata = () => {
+      if (audio.duration && isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    };
     const handleWaiting = () => { setLoading(true); setError(null); };
     const handlePlaying = () => { 
       setLoading(false); 
