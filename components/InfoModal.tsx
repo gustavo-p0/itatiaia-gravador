@@ -8,7 +8,7 @@ export default function InfoModal() {
 
   if (isOpen) {
     return (
-      <div className="mt-4 p-4 rounded-lg" style={{ background: '#fef3c7', border: '1px solid #d4a84b' }}>
+      <div className="mt-4 p-4 rounded-lg" style={{ background: '#1a0f08', border: '1px solid #3d2515' }}>
         <button 
           onClick={() => setIsOpen(false)}
           className="w-full flex items-center justify-between text-left mb-3"
@@ -24,7 +24,7 @@ export default function InfoModal() {
           </svg>
         </button>
         
-        <div className="text-sm space-y-3" style={{ color: '#5a4020' }}>
+        <div className="text-sm space-y-3" style={{ color: '#d4a84b' }}>
           <p>Este aplicativo é um projeto independente e não oficial, criado por terceiros, sem vínculo societário, afiliação, endosso, patrocínio ou autorização da Rádio Itatiaia, Rede Itasat ou do programa Dona da Noite.</p>
           
           <p>Não há intenção de concorrer com os canais oficiais, streaming ou qualquer outro meio do titular. A função aqui é meramente de conveniência para ouvintes que não conseguem acompanhar ao vivo.</p>
@@ -42,12 +42,12 @@ export default function InfoModal() {
 <button
           onClick={() => setIsOpen(true)}
           className="flex items-center gap-2 p-3 rounded-lg w-full transition-colors"
-          style={{ background: '#fef3c7', border: '1px solid #d4a84b' }}
+          style={{ background: '#1a0f08', border: '1px solid #3d2515' }}
         >
-          <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ color: '#8b6914' }} fill="currentColor">
+          <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ color: '#d4a84b' }} fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
           </svg>
-          <span className="text-sm font-medium" style={{ color: '#8b6914' }}>Aviso legal</span>
+          <span className="text-sm font-medium" style={{ color: '#d4a84b' }}>Aviso legal</span>
           <svg viewBox="0 0 24 24" className="w-4 h-4 ml-auto" style={{ color: '#a07020' }} fill="currentColor">
             <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
           </svg>
