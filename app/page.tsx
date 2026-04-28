@@ -168,7 +168,7 @@ export default function HomePage() {
             <div className="w-8 h-8 rounded flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg, #cd9b32 0%, #a07020 100%)' }}>
               <svg viewBox="0 0 24 24" className="w-4 h-4 text-amber-100" fill="currentColor"><path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm-5 16H7v-2h5v2zm5-4H7v-2h10v2z" /></svg>
             </div>
-            <p className="text-sm text-amber-200 flex-1">Instalar app para ouvir offline</p>
+            <p className="text-sm text-amber-200 flex-1">Instalar app para ter acesso fácil</p>
             <button onClick={handleInstallPwa} className="px-2 py-1 rounded text-xs font-medium" style={{ backgroundColor: '#b8860b', color: '#fef3c7' }}>Instalar</button>
             <button onClick={() => setShowPwaPrompt(false)} className="p-1 rounded" style={{ color: '#8b6b3d' }}>
               <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" /></svg>
