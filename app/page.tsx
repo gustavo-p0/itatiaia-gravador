@@ -37,16 +37,7 @@ export default function HomePage() {
   useEffect(() => { fetchFiles(); }, [fetchFiles]);
 
   const fetchAudioUrl = useCallback(async (fileId: string) => {
-    setAudioUrl(null);
-    try {
-      const res = await fetch(`${API_BASE}/api/files/${fileId}/`);
-      const data = await res.json();
-      if (data.url && data.token) {
-        setAudioUrl(`${data.url}&access_token=${data.token}`);
-      }
-    } catch (err) {
-      console.error("Failed to fetch audio URL:", err);
-    }
+    setAudioUrl(`${API_BASE}/api/files/${fileId}/`);
   }, []);
 
   useEffect(() => {
@@ -59,8 +50,8 @@ export default function HomePage() {
 
   const handleFileSelect = useCallback((file: FileItem) => {
     setCurrentFile(file);
-    fetchAudioUrl(file.id);
-  }, [fetchAudioUrl]);
+    setAudioUrl(`${API_BASE}/api/files/${file.id}/`);
+  }, []);
   const handlePrev = useCallback(() => {
     if (!currentFile) return;
     const idx = files.findIndex(f => f.id === currentFile.id);
