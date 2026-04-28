@@ -135,13 +135,18 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
     const audio = audioRef.current;
     if (!audio) return;
     
+    let attempts = 0;
+    const maxAttempts = 60;
+    
     const checkDuration = () => {
       if (audio.duration && isFinite(audio.duration) && audio.duration > 0) {
         setDuration(audio.duration);
+      } else if (attempts < maxAttempts) {
+        attempts++;
       }
     };
     
-    const interval = setInterval(checkDuration, 500);
+    const interval = setInterval(checkDuration, 1000);
     checkDuration();
     
     return () => clearInterval(interval);

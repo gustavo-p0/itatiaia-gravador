@@ -64,6 +64,7 @@ export async function GET(
     responseHeaders.set('Content-Type', mimeType);
     responseHeaders.set('Accept-Ranges', 'bytes');
     responseHeaders.set('Cache-Control', 'public, max-age=3600');
+    responseHeaders.set('Content-Length', fileSize.toString());
 
     return new NextResponse(response.body, {
       status: 200,
