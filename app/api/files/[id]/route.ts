@@ -35,7 +35,7 @@ export async function GET(
       fields: 'name,mimeType,size',
     });
 
-    const fileSize = fileResponse.data.size || '0';
+    const fileSize = parseInt(fileResponse.data.size || '0', 10);
     const authClient = await auth.getClient() as any;
     const accessToken = authClient.accessToken || authClient.credentials?.access_token;
 
@@ -43,27 +43,63 @@ export async function GET(
       return NextResponse.json({ error: 'No access token' }, { status: 401 });
     }
 
+    const rangeHeader = request.headers.get('range');
+    let start = 0;
+    let end = fileSize - 1;
+    let isPartial = false;
+
+    if (rangeHeader) {
+      const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+      if (match) {
+        start = parseInt(match[1], 10);
+        if (match[2]) {
+          end = Math.min(parseInt(match[2], 10), fileSize - 1);
+        }
+        isPartial = true;
+      }
+    }
+
+    const headers: Record<string, string> = {
+      'Authorization': `Bearer ${accessToken}`,
+    };
+
+    if (isPartial) {
+      headers['Range'] = `bytes=${start}-${end}`;
+    }
+
     const response = await fetch(
       `https://www.googleapis.com/drive/v3/files/${id}?alt=media`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+      { headers }
     );
 
-    if (!response.ok) {
+    if (!response.ok && response.status !== 206) {
       console.error('Drive error:', response.status);
       return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
     }
 
-    const headers = new Headers();
-    headers.set('Content-Type', 'audio/mp4');
-    headers.set('Accept-Ranges', 'bytes');
-    headers.set('Content-Length', fileSize);
-    headers.set('Cache-Control', 'public, max-age=3600');
+    const contentLength = response.headers.get('content-length') || String(fileSize);
+    
+    const responseHeaders = new Headers();
+    responseHeaders.set('Content-Type', 'audio/mp4');
+    responseHeaders.set('Accept-Ranges', 'bytes');
+    responseHeaders.set('Cache-Control', 'public, max-age=3600');
 
-    return new NextResponse(response.body, { headers });
+    if (isPartial) {
+      responseHeaders.set('Content-Length', String(end - start + 1));
+      responseHeaders.set('Content-Range', `bytes ${start}-${end}/${fileSize}`);
+      
+      return new NextResponse(response.body, {
+        status: 206,
+        headers: responseHeaders,
+      });
+    }
+
+    responseHeaders.set('Content-Length', contentLength);
+
+    return new NextResponse(response.body, {
+      status: 200,
+      headers: responseHeaders,
+    });
   } catch (error: any) {
     console.error('Error getting file:', error);
     return NextResponse.json({ error: error.message || 'Failed to get file' }, { status: 500 });
