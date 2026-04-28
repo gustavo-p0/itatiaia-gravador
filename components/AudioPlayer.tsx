@@ -25,6 +25,8 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
   const [duration, setDuration] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoPlayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -51,11 +53,31 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
     const handlePlaying = () => { 
       setLoading(false); 
       setError(null);
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = null;
+      }
       if (audio.duration && isFinite(audio.duration) && duration === 0) {
         setDuration(audio.duration);
       }
     };
-    const handleError = () => { setLoading(false); setPlaying(false); setError(audio.error?.message || 'Erro ao carregar'); };
+    const handleError = (e: Event) => { 
+      const audioErr = (e.target as HTMLAudioElement)?.error;
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+      errorTimeoutRef.current = setTimeout(() => {
+        if (playing || loading) {
+          setError(null);
+        }
+      }, 2000);
+      setLoading(false); 
+      setPlaying(false); 
+      const msg = audioErr?.message || 'Erro ao carregar';
+      if (!msg.includes(' Aborted')) {
+        setError(msg);
+      }
+    };
     const handleCanPlay = () => {
       setLoading(false);
       if (audio.duration && isFinite(audio.duration)) {
@@ -79,6 +101,8 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
       audio.removeEventListener("playing", handlePlaying);
       audio.removeEventListener("error", handleError);
       audio.removeEventListener("canplay", handleCanPlay);
+      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+      if (autoPlayTimeoutRef.current) clearTimeout(autoPlayTimeoutRef.current);
     };
   }, [onEnded, src, onSongRecognized]);
 
@@ -87,6 +111,7 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
       setCurrentTime(0);
       setDuration(0);
       setPlaying(false);
+      setError(null);
       audioRef.current.src = src;
       audioRef.current.load();
       audioRef.current.play().catch(() => setPlaying(false));
