@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import AudioPlayer from "@/components/AudioPlayer";
 import FileList, { type FileItem } from "@/components/FileList";
-import InfoModal from "@/components/InfoModal";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import MusicRecognition from "@/components/MusicRecognition";
 import TourGuide from "@/components/TourGuide";
@@ -156,12 +155,8 @@ export default function HomePage() {
                   <AudioPlayer src={audioUrl} fileId={currentFile?.id} onPrev={handlePrev} onNext={handleNext} hasPrev={currentIndex > 0} hasNext={currentIndex < files.length - 1} onEnded={handleEnded} onClear={handleClear} onSongRecognized={setCurrentSong} loadingAudio={loadingAudio} onAudioReady={() => setLoadingAudio(false)} onPlayingChange={setPlaying} />
                 </div>
                 {loadingAudio && <LoadingOverlay />}
+</div>
               </div>
-<InfoModal />
-              <div className="mt-4" />
-              <MusicRecognition song={currentSong} isListening={false} />
-            </div>
-          </div>
         </div>
         <aside id="tour-recordings" className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l" style={{ borderColor: '#4a3020', background: 'linear-gradient(180deg, #2d1b14 0%, #1a0f08 100%)' }}>
           <div className="p-3 border-b" style={{ borderColor: '#3d2515' }}>
