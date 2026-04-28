@@ -11,7 +11,7 @@ export default function InfoModal() {
       <div className="mt-4 p-4 rounded-lg" style={{ background: 'linear-gradient(180deg, #3d2b1f 0%, #2d1b14 100%)', border: '1px solid #4a3020' }}>
         <button 
           onClick={() => setIsOpen(false)}
-          className="w-full flex items-center justify-between text-left"
+          className="w-full flex items-center justify-between text-left pt-2"
         >
           <div className="flex items-center gap-2">
             <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ color: '#d4a84b' }} fill="currentColor">
@@ -24,7 +24,7 @@ export default function InfoModal() {
           </svg>
         </button>
         
-        <div className="mt-3 text-sm space-y-2" style={{ color: '#a08060' }}>
+        <div className="mt-3 text-sm space-y-2 pt-2" style={{ color: '#a08060' }}>
           <p>O <strong style={{ color: '#d4a84b' }}>Itatiaia - Dona da Noite</strong> é uma atração noturna da Rádio Itatiaia focada na interatividade, música e a famosa "Oração do Dia", transmitido diariamente da meia-noite às 4h da manhã.</p>
           
           <p className="text-xs" style={{ color: '#6b5030' }}>Apresentado por Gutemberg Gomes e Tinelão (TinelaoNaArea), com forte participação dos ouvintes via WhatsApp.</p>
