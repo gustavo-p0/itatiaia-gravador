@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import AudioPlayer from "@/components/AudioPlayer";
 import FileList, { type FileItem } from "@/components/FileList";
+import InfoModal from "@/components/InfoModal";
 import MusicRecognition from "@/components/MusicRecognition";
 import { formatFileName } from "@/lib/utils";
 
@@ -146,6 +147,7 @@ export default function HomePage() {
               <div className="rounded p-3" style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #d4a84b 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.3)', border: '1px solid #a07020' }}>
                 <AudioPlayer src={audioUrl} fileId={currentFile?.id} onPrev={handlePrev} onNext={handleNext} hasPrev={currentIndex > 0} hasNext={currentIndex < files.length - 1} onEnded={handleEnded} onClear={handleClear} onSongRecognized={setCurrentSong} />
               </div>
+              <InfoModal />
               <MusicRecognition song={currentSong} isListening={false} />
             </div>
           </div>
