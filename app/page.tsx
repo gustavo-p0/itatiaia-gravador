@@ -20,25 +20,15 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
-      console.log('Fetching files...');
-      const res = await fetch(`${API_BASE}/api/files/`, { 
-        credentials: 'same-origin',
-        redirect: 'follow'
-      });
-      console.log('Response status:', res.status);
-      if (!res.ok) {
-        const text = await res.text();
-        console.error('Error response:', text);
-        setError(`Erro ${res.status}`);
-      } else {
-        const data = await res.json();
-        console.log('Files loaded:', data.files?.length);
-        if (data.files) setFiles(data.files);
-        else if (data.error) setError(data.error);
+      const res = await fetch(`${API_BASE}/api/files`);
+      const data = await res.json();
+      if (data.files) {
+        setFiles(data.files);
+      } else if (data.error) {
+        setError(data.error);
       }
-    } catch (err: any) {
-      console.error('Fetch error:', err);
-      setError("Erro ao carregar. Verifique a conexão.");
+    } catch (err) {
+      setError("Erro ao carregar arquivos.");
     } finally {
       setLoading(false);
     }
@@ -47,7 +37,16 @@ export default function HomePage() {
   useEffect(() => { fetchFiles(); }, [fetchFiles]);
 
   const fetchAudioUrl = useCallback(async (fileId: string) => {
-    setAudioUrl(`${API_BASE}/api/files/${fileId}/`);
+    setAudioUrl(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/files/${fileId}/`);
+      const data = await res.json();
+      if (data.url && data.token) {
+        setAudioUrl(`${data.url}&access_token=${data.token}`);
+      }
+    } catch (err) {
+      console.error("Failed to fetch audio URL:", err);
+    }
   }, []);
 
   useEffect(() => {
@@ -60,8 +59,8 @@ export default function HomePage() {
 
   const handleFileSelect = useCallback((file: FileItem) => {
     setCurrentFile(file);
-    setAudioUrl(`${API_BASE}/api/files/${file.id}/`);
-  }, []);
+    fetchAudioUrl(file.id);
+  }, [fetchAudioUrl]);
   const handlePrev = useCallback(() => {
     if (!currentFile) return;
     const idx = files.findIndex(f => f.id === currentFile.id);
