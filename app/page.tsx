@@ -155,7 +155,9 @@ export default function HomePage() {
                 <div className="rounded p-3 pt-3" style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #d4a84b 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.3)', border: '1px solid #a07020' }}>
                   <AudioPlayer src={audioUrl} fileId={currentFile?.id} onPrev={handlePrev} onNext={handleNext} hasPrev={currentIndex > 0} hasNext={currentIndex < files.length - 1} onEnded={handleEnded} onClear={handleClear} onSongRecognized={setCurrentSong} loadingAudio={loadingAudio} onAudioReady={() => setLoadingAudio(false)} onPlayingChange={setPlaying} />
                 </div>
-                <InfoModal />
+                {loadingAudio && <LoadingOverlay />}
+              </div>
+<InfoModal />
               <div className="mt-4" />
               <MusicRecognition song={currentSong} isListening={false} />
             </div>
@@ -163,7 +165,7 @@ export default function HomePage() {
         </div>
         <aside id="tour-recordings" className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l" style={{ borderColor: '#4a3020', background: 'linear-gradient(180deg, #2d1b14 0%, #1a0f08 100%)' }}>
           <div className="p-3 border-b" style={{ borderColor: '#3d2515' }}>
-            <h3 className="text-xs uppercase tracking-widest" style={{ color: '#8b6b3d', fontFamily: 'sans-serif' }}>Gravações do programa ({files.length})</h3>
+            <h3 className="text-xs uppercase tracking-widest" style={{ color: '#8b6b3d', fontFamily: 'sans-serif' }}>Gravações ({files.length})</h3>
           </div>
           <div className="p-2">
             <FileList files={files} currentFileId={currentFile?.id} onSelect={handleFileSelect} />
