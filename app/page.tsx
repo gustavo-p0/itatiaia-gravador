@@ -119,7 +119,7 @@ export default function HomePage() {
                 <h2 className="text-center italic font-bold mb-1" style={{ color: '#d4a84b', fontFamily: 'Georgia, serif' }}>
                   {currentFile ? formatFileName(currentFile.name) : "Nenhuma faixa"}
                 </h2>
-                <p className="text-center text-sm" style={{ color: '#8b6b3d' }}>Dona da Noite FM</p>
+                <p className="text-center text-sm" style={{ color: '#8b6b3d' }}>Rádio Itatiaia FM</p>
               </div>
               <div className="rounded p-3" style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #d4a84b 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.3)', border: '1px solid #a07020' }}>
                 <AudioPlayer src={audioUrl} onPrev={handlePrev} onNext={handleNext} hasPrev={currentIndex > 0} hasNext={currentIndex < files.length - 1} onEnded={handleEnded} onClear={handleClear} onSongRecognized={setCurrentSong} />

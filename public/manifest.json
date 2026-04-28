@@ -1,7 +1,7 @@
 {
   "name": "Itatiaia - Dona da Noite",
-  "short_name": "Dona da Noite",
-  "description": "Player para gravações do programa Dona da Noite - Itatiaia",
+  "short_name": "Itatiaia",
+  "description": "Player para gravações da Rádio Itatiaia",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1a1510",
