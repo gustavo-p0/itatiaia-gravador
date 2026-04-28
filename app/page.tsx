@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import AudioPlayer from "@/components/AudioPlayer";
 import FileList, { type FileItem } from "@/components/FileList";
+import InfoModal from "@/components/InfoModal";
 import LoadingOverlay from "@/components/LoadingOverlay";
 
 import { formatFileName } from "@/lib/utils";
@@ -163,6 +164,7 @@ export default function HomePage() {
                 </svg>
                 <span className="text-sm font-medium text-white">Enviar mensagem pro programa</span>
               </a>
+              <InfoModal />
             </div>
           </div>
         </div>

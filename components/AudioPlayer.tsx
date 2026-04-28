@@ -61,6 +61,12 @@ export default function AudioPlayer({
     onAudioReady?.();
   };
 
+  const handleLoadedMetadata = () => {
+    if (audioRef.current) {
+      setDuration(audioRef.current.duration || 0);
+    }
+  };
+
   const handleError = () => {
     setLoading(false);
     setError("Erro ao carregar áudio");
@@ -203,6 +209,7 @@ export default function AudioPlayer({
         ref={audioRef}
         onLoadStart={handleLoadStart}
         onCanPlay={handleCanPlay}
+        onLoadedMetadata={handleLoadedMetadata}
         onError={handleError}
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleEnded}
