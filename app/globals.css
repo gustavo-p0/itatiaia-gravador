@@ -50,12 +50,12 @@ body {
 }
 
 .disc-grooves {
-  background: repeating-conic-gradient(
-    from 0deg,
-    #111 0deg 3deg,
-    #1a1a1a 3deg 6deg,
-    #222 6deg 9deg,
-    #111 9deg 12deg
+  background: repeating-radial-gradient(
+    circle at center,
+    #111 0px,
+    #1a1a1a 2px,
+    #222 4px,
+    #111 6px
   );
 }
 
