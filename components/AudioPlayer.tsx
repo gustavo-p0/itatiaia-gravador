@@ -27,6 +27,7 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
   const [error, setError] = useState<string | null>(null);
   const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoPlayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isAutoPlayingRef = useRef(false);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -56,6 +57,10 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
       if (errorTimeoutRef.current) {
         clearTimeout(errorTimeoutRef.current);
         errorTimeoutRef.current = null;
+      }
+      if (isAutoPlayingRef.current) {
+        setPlaying(true);
+        isAutoPlayingRef.current = false;
       }
       if (audio.duration && isFinite(audio.duration) && duration === 0) {
         setDuration(audio.duration);
@@ -112,6 +117,7 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
       audio.removeEventListener("canplay", handleCanPlay);
       if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
       if (autoPlayTimeoutRef.current) clearTimeout(autoPlayTimeoutRef.current);
+      isAutoPlayingRef.current = false;
     };
   }, [onEnded, src, onSongRecognized]);
 
@@ -123,11 +129,13 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
       setError(null);
       audioRef.current.src = src;
       audioRef.current.load();
-      audioRef.current.play().catch(() => setPlaying(false));
+      isAutoPlayingRef.current = true;
+      audioRef.current.play().catch(() => {});
     } else if (!src) {
       setCurrentTime(0);
       setDuration(0);
       setPlaying(false);
+      isAutoPlayingRef.current = false;
     }
   }, [src]);
 
@@ -225,10 +233,11 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;
     if (!audio || !src) return;
-    if (playing) audio.pause();
+    const isCurrentlyPlaying = !audio.paused && !audio.ended;
+    if (isCurrentlyPlaying) audio.pause();
     else audio.play().catch(() => {});
-    setPlaying(!playing);
-  }, [playing, src]);
+    setPlaying(!isCurrentlyPlaying);
+  }, [src]);
 
   const handleSeek = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const audio = audioRef.current;
