@@ -13,9 +13,12 @@ interface AudioPlayerProps {
   hasNext?: boolean;
   onClear?: () => void;
   onSongRecognized?: (song: { title: string; artist: string; album: string | null }) => void;
+  loadingAudio?: boolean;
+  onAudioReady?: () => void;
+  onPlayingChange?: (playing: boolean) => void;
 }
 
-export default function AudioPlayer({ src, fileId, onEnded, onPrev, onNext, hasPrev, hasNext, onClear, onSongRecognized }: AudioPlayerProps) {
+export default function AudioPlayer({ src, fileId, onEnded, onPrev, onNext, hasPrev, hasNext, onClear, onSongRecognized, loadingAudio, onAudioReady, onPlayingChange }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -48,6 +51,7 @@ useEffect(() => {
 
     const handleEnded = () => { 
       setPlaying(false); 
+      if (onPlayingChange) onPlayingChange(false);
       if (storageKey) localStorage.removeItem(storageKey); 
       onEnded?.(); 
     };
@@ -68,6 +72,8 @@ useEffect(() => {
         setPlaying(true);
         isAutoPlayingRef.current = false;
       }
+      if (onAudioReady) onAudioReady();
+      if (onPlayingChange) onPlayingChange(true);
       if (audio.duration && isFinite(audio.duration) && duration === 0) {
         setDuration(audio.duration);
       }
