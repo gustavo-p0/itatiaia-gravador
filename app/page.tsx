@@ -109,8 +109,8 @@ export default function HomePage() {
               <div className="rounded-2xl p-6 mb-4" style={{ background: 'linear-gradient(180deg, #2d251b 0%, #1a1510 100%)', boxShadow: 'inset 0 0 40px rgba(0,0,0,0.8)' }}>
                 <div className="flex justify-center mb-4">
                   <div className="w-24 h-24 rounded-full flex items-center justify-center border-2 border-gray-800 overflow-hidden" style={{ background: 'conic-gradient(from 0deg, #1a1a1a 0deg, #2a2a2a 90deg, #1a1a1a 180deg, #2a2a2a 270deg, #1a1a1a 360deg)', animation: 'spin 20s linear infinite' }}>
-                    <div className="w-16 h-16 rounded-full border-4 border-amber-800/30 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #d4a84b 0%, #8b6b3d 50%, #5a4020 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.3)' }}>
-                      <div className="w-4 h-4 rounded-full bg-amber-900 border border-amber-700/50" />
+                    <div className="w-14 h-14 rounded-full border-4 border-amber-800/30 flex items-center justify-center shadow-inner" style={{ background: 'radial-gradient(circle at 30% 30%, #f5d78e 0%, #d4a84b 40%, #8b6b3d 70%, #5a4020 100%)', boxShadow: 'inset 0 2px 8px rgba(255,255,255,0.4), inset 0 -2px 8px rgba(0,0,0,0.3)' }}>
+                      <div className="w-3 h-3 rounded-full bg-amber-900 border border-amber-700/50" />
                     </div>
                   </div>
                 </div>
