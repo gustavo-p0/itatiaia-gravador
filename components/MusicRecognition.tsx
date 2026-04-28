@@ -13,7 +13,7 @@ export default function MusicRecognition({ song, isListening }: MusicRecognition
   if (!song && !isListening) return null;
 
   return (
-    <div className="p-4 rounded-lg" style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #d4a84b 100%)', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+    <div className="mt-4 p-4 rounded-lg" style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #d4a84b 100%)', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
       {isListening && !song && (
         <div className="flex items-center justify-center gap-2">
           <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#b8860b' }} />
