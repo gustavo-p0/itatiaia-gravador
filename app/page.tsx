@@ -155,6 +155,7 @@ export default function HomePage() {
                 {loadingAudio && <LoadingOverlay />}
               </div>
               <InfoModal />
+              <div className="mt-3" />
               <MusicRecognition song={currentSong} isListening={false} />
             </div>
           </div>
