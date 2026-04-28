@@ -56,8 +56,9 @@ useEffect(() => {
       onEnded?.(); 
     };
     const handleLoadedMetadata = () => {
-      if (audio.duration && isFinite(audio.duration)) {
-        setDuration(audio.duration);
+      const dur = audio.duration;
+      if (dur && isFinite(dur) && dur > 0 && !isNaN(dur)) {
+        setDuration(dur);
       }
     };
     const handleWaiting = () => { setLoading(true); setError(null); };
