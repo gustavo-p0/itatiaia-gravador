@@ -18,8 +18,10 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Itatiaia - Dona da Noite",
   description: "Player para gravações do programa Dona da Noite - Itatiaia",
+  manifest: "/manifest.json",
   icons: {
-    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💿</text></svg>",
+    icon: "/icon.svg",
+    apple: "/icon.svg",
   },
 };
 
