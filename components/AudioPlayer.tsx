@@ -85,8 +85,16 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
       }
     };
 
+    const handleCanPlayThrough = () => {
+      setLoading(false);
+      if (audio.duration && isFinite(audio.duration) && audio.duration > 0) {
+        setDuration(audio.duration);
+      }
+    };
+
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    audio.addEventListener("canplaythrough", handleCanPlayThrough);
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("waiting", handleWaiting);
     audio.addEventListener("playing", handlePlaying);
@@ -96,6 +104,7 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      audio.removeEventListener("canplaythrough", handleCanPlayThrough);
       audio.removeEventListener("ended", handleEnded);
       audio.removeEventListener("waiting", handleWaiting);
       audio.removeEventListener("playing", handlePlaying);
