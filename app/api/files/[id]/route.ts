@@ -52,21 +52,26 @@ export async function GET(
     const range = request.headers.get('range');
     let start = 0;
     let end = fileSize - 1;
+    let isPartial = false;
 
     if (range) {
       const rangeMatch = range.match(/bytes=(\d+)-(\d*)/);
       if (rangeMatch) {
         start = parseInt(rangeMatch[1], 10);
         if (rangeMatch[2]) {
-          end = parseInt(rangeMatch[2], 10);
+          end = Math.min(parseInt(rangeMatch[2], 10), fileSize - 1);
         }
+        if (start > 0 || end < fileSize - 1) {
+          isPartial = true;
+        }
+        headers['Range'] = `bytes=${start}-${end}`;
       }
-      headers['Range'] = `bytes=${start}-${end}`;
     }
 
     const response = await fetch(url, { headers });
 
-    if (!response.ok && !response.status.toString().startsWith('2')) {
+    if (!response.ok && response.status !== 206) {
+      console.error('Drive response:', response.status, response.statusText);
       return NextResponse.json({ error: 'Failed to fetch audio' }, { status: 500 });
     }
 
@@ -75,16 +80,32 @@ export async function GET(
       return NextResponse.json({ error: 'Empty response' }, { status: 500 });
     }
 
-    const contentLength = end - start + 1;
     const responseHeaders = new Headers();
     responseHeaders.set('Content-Type', 'audio/mp4');
     responseHeaders.set('Accept-Ranges', 'bytes');
-    responseHeaders.set('Content-Length', contentLength.toString());
-    responseHeaders.set('Content-Range', `bytes ${start}-${end}/${fileSize}`);
     responseHeaders.set('Cache-Control', 'public, max-age=3600');
 
+    const actualSize = response.headers.get('content-length');
+    if (actualSize) {
+      responseHeaders.set('Content-Length', actualSize);
+    }
+
+    if (isPartial) {
+      responseHeaders.set('Content-Range', `bytes ${start}-${end}/${fileSize}`);
+      return new NextResponse(stream as any, {
+        status: 206,
+        headers: responseHeaders,
+      });
+    }
+
+    if (actualSize) {
+      responseHeaders.set('Content-Length', actualSize);
+    } else {
+      responseHeaders.set('Content-Length', fileSize.toString());
+    }
+
     return new NextResponse(stream as any, {
-      status: range ? 206 : 200,
+      status: 200,
       headers: responseHeaders,
     });
   } catch (error: any) {
