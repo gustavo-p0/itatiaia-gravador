@@ -187,9 +187,18 @@ export default function HomePage() {
       )}
 
       <footer className="p-4 text-center" style={{ borderColor: '#4a3020' }}>
-        <p className="text-xs" style={{ color: '#5a4030' }}>
+        <p className="text-xs mb-2" style={{ color: '#5a4030' }}>
           App independente. Sem vínculo com Rede Itasat ou Rádio Itatiaia. As gravações são de autoria do programa.
         </p>
+        <details className="text-xs" style={{ color: '#4a3020' }}>
+          <summary className="cursor-pointer hover:underline mb-1">Aviso legal e titularidade</summary>
+          <div className="text-left mt-2 p-3 rounded" style={{ background: 'rgba(0,0,0,0.2)' }}>
+            <p className="mb-2">Este aplicativo é um projeto independente e não oficial, criado por terceiros, sem vínculo societário, afiliação, endosso, patrocínio ou autorização da Rádio Itatiaia, Rede Itasat ou do programa Dona da Noite.</p>
+            <p className="mb-2">Não há intenção de concorrer com os canais oficiais, streaming ou qualquer outro meio do titular. A função aqui é meramente de conveniência para ouvintes que não conseguem acompanhar ao vivo.</p>
+            <p className="mb-2">As expressões "Dona da Noite", "Itatiaia", logotipos, identidade visual e demais conteúdos exibidos podem constituir marca, obra ou dado de titularidade de terceiros. Este projeto não reclama propriedade sobre tais elementos; os créditos e direitos permanecem com os respectivos titulares.</p>
+            <p>As informações têm caráter meramente informativo e o uso é por conta e risco do usuário, nos limites permitidos em lei.</p>
+          </div>
+        </details>
       </footer>
 
       <TourGuide
