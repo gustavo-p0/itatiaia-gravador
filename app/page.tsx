@@ -6,6 +6,7 @@ import FileList, { type FileItem } from "@/components/FileList";
 import InfoModal from "@/components/InfoModal";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import MusicRecognition from "@/components/MusicRecognition";
+import TourGuide from "@/components/TourGuide";
 import { formatFileName } from "@/lib/utils";
 
 const API_BASE = "";
@@ -190,6 +191,37 @@ export default function HomePage() {
           App independente. Sem vínculo com Rede Itasat ou Rádio Itatiaia. As gravações são de autoria do programa.
         </p>
       </footer>
+
+      <TourGuide
+        steps={[
+          {
+            title: "Bem-vindo ao Dona da Noite!",
+            content: "Este app permite ouvir as gravações do programa quando e onde quiser. É só apertar play!",
+            position: 'top'
+          },
+          {
+            title: "Escolha sua gravação",
+            content: "Aqui você encontra todas as gravações disponíveis. Toque em uma para selecionar.",
+            position: 'right'
+          },
+          {
+            title: "Controles do player",
+            content: "Use os botões para avançar, voltar ou pular para próxima gravação. O tempo é salvo automaticamente!",
+            position: 'top'
+          },
+          {
+            title: "Quer ouvir offline?",
+            content: "Toque em 'Instalar app' no topo para salvar no seu celular e ouvir sem internet!",
+            position: 'bottom'
+          },
+          {
+            title: "Fale com a equipe",
+            content: "Tem feedback ou quer participar? Mande uma mensagem direto pelo WhatsApp!",
+            position: 'top'
+          }
+        ]}
+        onComplete={() => {}}
+      />
     </div>
   );
 }
