@@ -35,8 +35,7 @@ export async function GET(
       fields: 'name,mimeType,size',
     });
 
-    const name = fileResponse.data.name || 'audio';
-    const fileSize = parseInt(fileResponse.data.size || '0', 10);
+    const fileSize = fileResponse.data.size || '0';
     const authClient = await auth.getClient() as any;
     const accessToken = authClient.accessToken || authClient.credentials?.access_token;
 
@@ -44,70 +43,27 @@ export async function GET(
       return NextResponse.json({ error: 'No access token' }, { status: 401 });
     }
 
-    const url = `https://www.googleapis.com/drive/v3/files/${id}?alt=media`;
-    const headers: Record<string, string> = {
-      'Authorization': `Bearer ${accessToken}`,
-    };
-
-    const range = request.headers.get('range');
-    let start = 0;
-    let end = fileSize - 1;
-    let isPartial = false;
-
-    if (range) {
-      const rangeMatch = range.match(/bytes=(\d+)-(\d*)/);
-      if (rangeMatch) {
-        start = parseInt(rangeMatch[1], 10);
-        if (rangeMatch[2]) {
-          end = Math.min(parseInt(rangeMatch[2], 10), fileSize - 1);
-        }
-        if (start > 0 || end < fileSize - 1) {
-          isPartial = true;
-        }
-        headers['Range'] = `bytes=${start}-${end}`;
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${id}?alt=media`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       }
+    );
+
+    if (!response.ok) {
+      console.error('Drive error:', response.status);
+      return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
     }
 
-    const response = await fetch(url, { headers });
+    const headers = new Headers();
+    headers.set('Content-Type', 'audio/mp4');
+    headers.set('Accept-Ranges', 'bytes');
+    headers.set('Content-Length', fileSize);
+    headers.set('Cache-Control', 'public, max-age=3600');
 
-    if (!response.ok && response.status !== 206) {
-      console.error('Drive response:', response.status, response.statusText);
-      return NextResponse.json({ error: 'Failed to fetch audio' }, { status: 500 });
-    }
-
-    const stream = response.body;
-    if (!stream) {
-      return NextResponse.json({ error: 'Empty response' }, { status: 500 });
-    }
-
-    const responseHeaders = new Headers();
-    responseHeaders.set('Content-Type', 'audio/mp4');
-    responseHeaders.set('Accept-Ranges', 'bytes');
-    responseHeaders.set('Cache-Control', 'public, max-age=3600');
-
-    const actualSize = response.headers.get('content-length');
-    if (actualSize) {
-      responseHeaders.set('Content-Length', actualSize);
-    }
-
-    if (isPartial) {
-      responseHeaders.set('Content-Range', `bytes ${start}-${end}/${fileSize}`);
-      return new NextResponse(stream as any, {
-        status: 206,
-        headers: responseHeaders,
-      });
-    }
-
-    if (actualSize) {
-      responseHeaders.set('Content-Length', actualSize);
-    } else {
-      responseHeaders.set('Content-Length', fileSize.toString());
-    }
-
-    return new NextResponse(stream as any, {
-      status: 200,
-      headers: responseHeaders,
-    });
+    return new NextResponse(response.body, { headers });
   } catch (error: any) {
     console.error('Error getting file:', error);
     return NextResponse.json({ error: error.message || 'Failed to get file' }, { status: 500 });
