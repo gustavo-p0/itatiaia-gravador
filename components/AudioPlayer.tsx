@@ -5,6 +5,7 @@ import { formatDuration } from "@/lib/utils";
 
 interface AudioPlayerProps {
   src: string | null;
+  fileId?: string;
   onEnded?: () => void;
   onPrev?: () => void;
   onNext?: () => void;
@@ -14,7 +15,7 @@ interface AudioPlayerProps {
   onSongRecognized?: (song: { title: string; artist: string; album: string | null }) => void;
 }
 
-export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, hasNext, onClear, onSongRecognized }: AudioPlayerProps) {
+export default function AudioPlayer({ src, fileId, onEnded, onPrev, onNext, hasPrev, hasNext, onClear, onSongRecognized }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -29,11 +30,12 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
   const autoPlayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isAutoPlayingRef = useRef(false);
 
-  useEffect(() => {
+useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const savedTime = localStorage.getItem(`audio_pos_${src}`);
+    const storageKey = fileId ? `audio_pos_${fileId}` : null;
+    const savedTime = storageKey ? localStorage.getItem(storageKey) : null;
     if (savedTime && src && audio.src) {
       const time = parseFloat(savedTime);
       if (!isNaN(time)) audio.currentTime = time;
@@ -41,15 +43,14 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
 
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
-      if (src) localStorage.setItem(`audio_pos_${src}`, audio.currentTime.toString());
+      if (storageKey) localStorage.setItem(storageKey, audio.currentTime.toString());
     };
 
-    const handleLoadedMetadata = () => {
-      if (audio.duration && isFinite(audio.duration)) {
-        setDuration(audio.duration);
-      }
+    const handleEnded = () => { 
+      setPlaying(false); 
+      if (storageKey) localStorage.removeItem(storageKey); 
+      onEnded?.(); 
     };
-    const handleEnded = () => { setPlaying(false); if (src) localStorage.removeItem(`audio_pos_${src}`); onEnded?.(); };
     const handleWaiting = () => { setLoading(true); setError(null); };
     const handlePlaying = () => { 
       setLoading(false); 
@@ -119,7 +120,7 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
       if (autoPlayTimeoutRef.current) clearTimeout(autoPlayTimeoutRef.current);
       isAutoPlayingRef.current = false;
     };
-  }, [onEnded, src, onSongRecognized]);
+  }, [onEnded, src, fileId, onSongRecognized]);
 
   useEffect(() => {
     if (audioRef.current && src) {
@@ -263,9 +264,9 @@ export default function AudioPlayer({ src, onEnded, onPrev, onNext, hasPrev, has
     const audio = audioRef.current;
     if (audio) { audio.pause(); audio.currentTime = 0; setPlaying(false); }
     stopRecognition();
-    if (src) localStorage.removeItem(`audio_pos_${src}`);
+    if (fileId) localStorage.removeItem(`audio_pos_${fileId}`);
     if (onClear) onClear();
-  }, [onClear, src]);
+  }, [onClear, fileId]);
 
   return (
     <div className="flex flex-col gap-2 w-full">
