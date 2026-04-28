@@ -15,6 +15,8 @@ export default function HomePage() {
   const [currentSong, setCurrentSong] = useState<{ title: string; artist: string; album: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showPwaPrompt, setShowPwaPrompt] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   const fetchFiles = useCallback(async () => {
     setLoading(true);
@@ -35,6 +37,26 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => { fetchFiles(); }, [fetchFiles]);
+
+  useEffect(() => {
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setTimeout(() => setShowPwaPrompt(true), 3000);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+  }, []);
+
+  const handleInstallPwa = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => {
+        setShowPwaPrompt(false);
+        setDeferredPrompt(null);
+      });
+    }
+  };
 
   const fetchAudioUrl = useCallback(async (fileId: string) => {
     setAudioUrl(`${API_BASE}/api/files/${fileId}/`);
@@ -137,6 +159,24 @@ export default function HomePage() {
           </div>
         </aside>
       </main>
+
+      {showPwaPrompt && (
+        <div className="fixed bottom-4 left-4 right-4 lg:left-auto lg:right-4 lg:w-80 p-4 rounded-lg shadow-lg z-50 animate-pulse-glow" style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #d4a84b 100%)', border: '2px solid #8b6914' }}>
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#8b6914' }}>
+              <svg viewBox="0 0 24 24" className="w-5 h-5 text-amber-100" fill="currentColor"><path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm-5 16H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z" /></svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-amber-900 mb-1">Instalar App</h3>
+              <p className="text-sm text-amber-800 mb-3">Adicione à tela inicial para ouvir offline!</p>
+              <div className="flex gap-2">
+                <button onClick={handleInstallPwa} className="px-3 py-1 rounded text-sm font-bold" style={{ backgroundColor: '#8b6914', color: '#fef3c7' }}>Instalar</button>
+                <button onClick={() => setShowPwaPrompt(false)} className="px-3 py-1 rounded text-sm" style={{ backgroundColor: '#fef3c7', color: '#8b6914', border: '1px solid #a07020' }}>Agora não</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
