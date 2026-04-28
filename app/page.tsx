@@ -221,11 +221,6 @@ export default function HomePage() {
             content: "Use os botões para avançar, voltar ou pular para próxima gravação. O tempo é salvo automaticamente!"
           },
           {
-            targetId: "tour-pwa",
-            title: "Quer ouvir offline?",
-            content: "Toque em 'Instalar app' para salvar no seu celular e ouvir sem internet!"
-          },
-          {
             targetId: "tour-whatsapp",
             title: "Mensagem para o programa",
             content: "Quer participar, mandar feedback ou pedir uma música? Mande uma mensagem pelo WhatsApp!"
