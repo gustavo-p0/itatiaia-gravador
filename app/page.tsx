@@ -20,18 +20,24 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
+      console.log('Fetching files...');
       const res = await fetch(`${API_BASE}/api/files/`, { 
         credentials: 'same-origin',
         redirect: 'follow'
       });
+      console.log('Response status:', res.status);
       if (!res.ok) {
-        setError(`Erro ${res.status}: Não foi possível carregar`);
+        const text = await res.text();
+        console.error('Error response:', text);
+        setError(`Erro ${res.status}`);
       } else {
         const data = await res.json();
+        console.log('Files loaded:', data.files?.length);
         if (data.files) setFiles(data.files);
         else if (data.error) setError(data.error);
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.error('Fetch error:', err);
       setError("Erro ao carregar. Verifique a conexão.");
     } finally {
       setLoading(false);
