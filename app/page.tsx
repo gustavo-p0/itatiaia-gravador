@@ -128,7 +128,7 @@ export default function HomePage() {
           <div className="flex-1 flex flex-col items-center justify-center">
             <div className="w-full max-w-sm rounded-lg p-4" style={{ background: 'linear-gradient(180deg, #d1d5db 0%, #9ca3af 50%, #6b7280 100%)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.5), 0 4px 8px rgba(0,0,0,0.4), inset 0 0 20px rgba(0,0,0,0.1)' }}>
               <div className="relative">
-                <div className="rounded-2xl p-6 mb-4" style={{ background: 'linear-gradient(180deg, #2d251b 0%, #1a1510 100%)', boxShadow: 'inset 0 0 40px rgba(0,0,0,0.8)' }}>
+                <div className="rounded-2xl p-6 mb-4" style={{ background: 'linear-gradient(180deg, #2d251b 0%, #1a1510 100%)', boxShadow: 'inset 0 0 40px rgba(0,0,0,0.8)', position: 'relative' }}>
                   <div className="flex justify-center mb-4">
                     <div className="relative w-24 h-24">
                       <div className="absolute inset-0 rounded-full disc-grooves animate-spin" style={{ animationDuration: playing ? '3s' : '20s', animationPlayState: playing ? 'running' : 'paused' }} />
@@ -143,10 +143,10 @@ export default function HomePage() {
                   </h2>
                   <p className="text-center text-sm" style={{ color: '#8b6b3d' }}>Rádio Itatiaia FM</p>
                 </div>
-                <div className="rounded p-3" style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #d4a84b 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.3)', border: '1px solid #a07020', position: 'relative' }}>
+                <div className="rounded p-3" style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #d4a84b 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.3)', border: '1px solid #a07020' }}>
                   <AudioPlayer src={audioUrl} fileId={currentFile?.id} onPrev={handlePrev} onNext={handleNext} hasPrev={currentIndex > 0} hasNext={currentIndex < files.length - 1} onEnded={handleEnded} onClear={handleClear} onSongRecognized={setCurrentSong} loadingAudio={loadingAudio} onAudioReady={() => setLoadingAudio(false)} onPlayingChange={setPlaying} />
-                  {loadingAudio && <LoadingOverlay />}
                 </div>
+                {loadingAudio && <LoadingOverlay />}
               </div>
               <div className="mt-4">
                 <InfoModal />
