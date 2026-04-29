@@ -18,10 +18,11 @@ function listFiles(folderId) {
   const files = folder.getFiles();
   const result = [];
 
+  const audioExtensions = ['.aac', '.m4a', '.mp3', '.wav', '.ogg', '.flac'];
   while (files.hasNext()) {
     const file = files.next();
     const name = file.getName();
-    if (name && name.toLowerCase().endsWith('.aac')) {
+    if (name && audioExtensions.some(ext => name.toLowerCase().endsWith(ext))) {
       result.push({
         id: file.getId(),
         name: name,

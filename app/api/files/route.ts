@@ -36,12 +36,19 @@ export async function GET() {
     const folderId = '1kByEbTVDBijyihxl2BNBN1sTFK8be8e4';
 
     const response = await drive.files.list({
-      q: `'${folderId}' in parents and name contains '.aac'`,
-      fields: 'files(id,name,createdTime,size)',
+      q: `'${folderId}' in parents`,
+      fields: 'files(id,name,createdTime,size,mimeType)',
       orderBy: 'createdTime desc',
     });
 
-    return NextResponse.json({ files: response.data.files || [] });
+    const audioExtensions = ['.aac', '.m4a', '.mp3', '.wav', '.ogg', '.flac'];
+    const files = (response.data.files || []).filter(f => {
+      const name = (f.name || '').toLowerCase();
+      const mime = (f.mimeType || '').toLowerCase();
+      return audioExtensions.some(ext => name.endsWith(ext)) || mime.startsWith('audio/');
+    });
+
+    return NextResponse.json({ files });
   } catch (error: any) {
     console.error('Error listing files:', error);
     return NextResponse.json({ error: error.message || 'Failed to list files' }, { status: 500 });
