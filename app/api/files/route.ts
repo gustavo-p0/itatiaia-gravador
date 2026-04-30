@@ -25,6 +25,8 @@ function getServiceAccountAuth() {
   });
 }
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const auth = getServiceAccountAuth();
@@ -48,7 +50,16 @@ export async function GET() {
       return audioExtensions.some(ext => name.endsWith(ext)) || mime.startsWith('audio/');
     });
 
-    return NextResponse.json({ files });
+    return NextResponse.json(
+      { files },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
+    );
   } catch (error: any) {
     console.error('Error listing files:', error);
     return NextResponse.json({ error: error.message || 'Failed to list files' }, { status: 500 });
