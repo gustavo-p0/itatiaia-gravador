@@ -20,6 +20,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [showPwaPrompt, setShowPwaPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showContent, setShowContent] = useState(false);
 
   const fetchFiles = useCallback(async () => {
     setLoading(true);
@@ -50,6 +51,16 @@ export default function HomePage() {
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
   }, []);
+
+  // Garante loading mínimo de 1.2s para evitar flicker
+  useEffect(() => {
+    if (!loading) {
+      const timer = setTimeout(() => setShowContent(true), 400);
+      return () => clearTimeout(timer);
+    } else {
+      setShowContent(false);
+    }
+  }, [loading]);
 
   const handleInstallPwa = () => {
     if (deferredPrompt) {
@@ -92,14 +103,7 @@ export default function HomePage() {
   const handleClear = useCallback(() => { setAudioUrl(null); setCurrentFile(null); }, []);
   const currentIndex = currentFile ? files.findIndex(f => f.id === currentFile.id) : -1;
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #2d251b 0%, #1a1510 100%)' }}>
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin" />
-        <p style={{ color: '#a18060' }}>Carregando...</p>
-      </div>
-    </div>
-  );
+if (loading || !showContent) return <LoadingOverlay />;
 
   if (error) return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center" style={{ background: 'linear-gradient(180deg, #2d251b 0%, #1a1510 100%)' }}>
