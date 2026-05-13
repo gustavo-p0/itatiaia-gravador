@@ -22,6 +22,8 @@ Copie o arquivo `.github/workflows/gravar.yml` para dentro do repositório clona
 
 ### 3. Configurar o Google Drive (uma única vez)
 
+**Importante:** os arquivos de áudio na pasta **Itatiaia** do Google Drive devem estar compartilhados como **"Qualquer pessoa com o link"** (Viewer). Sem isso, o player não conseguirá acessar os arquivos diretamente.
+
 No Terminal do seu Mac:
 
 ```bash

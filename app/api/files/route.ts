@@ -25,8 +25,6 @@ function getServiceAccountAuth() {
   });
 }
 
-export const dynamic = 'force-dynamic';
-
 export async function GET() {
   try {
     const auth = getServiceAccountAuth();
@@ -39,7 +37,7 @@ export async function GET() {
 
     const response = await drive.files.list({
       q: `'${folderId}' in parents`,
-      fields: 'files(id,name,createdTime,size,mimeType)',
+      fields: 'files(id,name,createdTime,size,mimeType,webContentLink)',
       orderBy: 'createdTime desc',
     });
 
@@ -54,9 +52,7 @@ export async function GET() {
       { files },
       {
         headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0',
+          'Cache-Control': 'public, max-age=300, stale-while-revalidate=60',
         },
       }
     );

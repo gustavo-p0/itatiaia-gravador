@@ -29,47 +29,18 @@ export async function GET(
     }
 
     const drive = google.drive({ version: 'v3', auth });
-    
+
     const fileResponse = await drive.files.get({
       fileId: id,
-      fields: 'name,mimeType,size',
+      fields: 'name,mimeType,webContentLink',
     });
 
-    const fileSize = parseInt(fileResponse.data.size || '0', 10);
-    const mimeType = fileResponse.data.mimeType || 'audio/aac';
-
-    const authClient = await auth.getClient() as any;
-    let accessToken = await authClient.getAccessToken?.()?.then((r: any) => r?.token);
-    accessToken = accessToken || authClient.accessToken || authClient.credentials?.access_token;
-
-    if (!accessToken) {
-      return NextResponse.json({ error: 'No access token' }, { status: 401 });
+    const webContentLink = fileResponse.data.webContentLink;
+    if (!webContentLink) {
+      return NextResponse.json({ error: 'No download link available. Make sure the file is shared with "Anyone with the link".' }, { status: 403 });
     }
 
-    const response = await fetch(
-      `https://www.googleapis.com/drive/v3/files/${id}?alt=media`,
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      console.error('Drive error:', response.status, response.statusText);
-      return NextResponse.json({ error: 'Failed to fetch audio' }, { status: 500 });
-    }
-
-    const responseHeaders = new Headers();
-    responseHeaders.set('Content-Type', mimeType);
-    responseHeaders.set('Accept-Ranges', 'bytes');
-    responseHeaders.set('Cache-Control', 'public, max-age=3600');
-    responseHeaders.set('Content-Length', fileSize.toString());
-
-    return new NextResponse(response.body, {
-      status: 200,
-      headers: responseHeaders,
-    });
+    return NextResponse.redirect(webContentLink, 307);
   } catch (error: any) {
     console.error('Error getting file:', error);
     return NextResponse.json({ error: error.message || 'Failed to get file' }, { status: 500 });

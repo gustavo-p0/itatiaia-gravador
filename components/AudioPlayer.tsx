@@ -320,7 +320,7 @@ useEffect(() => {
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      <audio ref={audioRef} preload="metadata" />
+      <audio ref={audioRef} preload="none" />
 
       {error && (
         <div className="text-center text-xs py-1 rounded" style={{ backgroundColor: '#3d1008', color: '#fca5a5' }}>{error}</div>
