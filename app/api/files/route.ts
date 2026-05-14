@@ -25,6 +25,8 @@ function getServiceAccountAuth() {
   });
 }
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const auth = getServiceAccountAuth();
@@ -52,7 +54,7 @@ export async function GET() {
       { files },
       {
         headers: {
-          'Cache-Control': 'public, max-age=300, stale-while-revalidate=60',
+          'Cache-Control': 'public, max-age=0, s-maxage=60, stale-while-revalidate=30',
         },
       }
     );

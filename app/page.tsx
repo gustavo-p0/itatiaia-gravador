@@ -26,7 +26,7 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/api/files`);
+      const res = await fetch(`${API_BASE}/api/files`, { cache: 'no-store' });
       const data = await res.json();
       if (data.files) {
         setFiles(data.files);
