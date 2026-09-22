@@ -41,7 +41,7 @@ jobs:
           }
 
           retry_with_backoff 5 sudo apt-get -o Acquire::Retries=3 update
-          retry_with_backoff 5 sudo apt-get -o Acquire::Retries=3 install -y --fix-missing ffmpeg
+          retry_with_backoff 5 sudo apt-get -o Acquire::Retries=3 install -y --fix-missing ffmpeg jq
           curl --fail --location \
             --retry 6 --retry-all-errors --retry-max-time 180 \
             --output /tmp/install-rclone.sh \
@@ -49,15 +49,26 @@ jobs:
           sudo bash /tmp/install-rclone.sh
           rm -f /tmp/install-rclone.sh
 
-      - name: Gravar e normalizar o stream por 4 horas com Fallback
+      - name: Gravar e normalizar o stream por 4 horas com Fallback e Discovery
         run: |
-          STREAMS=(
-            "https://8903.brasilstream.com.br/stream"
-            "http://8903.brasilstream.com.br:8903/stream"
-            "https://8903.brasilstream.com.br/stream?ext=.mp3"
-          )
+          echo "Buscando URLs dinâmicas da Itatiaia BH no Radio Browser API..."
+          API_URLS=$(curl -s "https://all.api.radio-browser.info/json/stations/search?name=Itatiaia&countrycode=BR&hidebroken=true&order=clickcount&reverse=true" \
+            | jq -r '.[] | select(.name | test("Juiz|Sul"; "i") | not) | .url_resolved' \
+            | sort -u)
+            
+          readarray -t DYNAMIC_STREAMS <<<"$API_URLS"
           
-          for URL in "${STREAMS[@]}"; do
+          # Junta as URLs da API com as nossas de fallback estático
+          ALL_STREAMS=("${DYNAMIC_STREAMS[@]}" "https://8903.brasilstream.com.br/stream" "http://8903.brasilstream.com.br:8903/stream")
+          
+          # Remove duplicadas mantendo a ordem
+          UNIQUE_STREAMS=($(printf "%s\n" "${ALL_STREAMS[@]}" | awk '!x[$0]++' | grep -v '^$'))
+          
+          echo "Lista final de streams a tentar:"
+          printf "%s\n" "${UNIQUE_STREAMS[@]}"
+          
+          for URL in "${UNIQUE_STREAMS[@]}"; do
+            echo "----------------------------------------"
             echo "Tentando conectar em: $URL"
             ffmpeg -hide_banner -loglevel warning -stats -nostdin -y \
               -reconnect 1 \
