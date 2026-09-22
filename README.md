@@ -111,3 +111,36 @@ O projeto foi construído e estabilizado graças a várias ferramentas open-sour
 - **[FFmpeg](https://ffmpeg.org/):** Motor de áudio responsável por conectar no *Icecast*, baixar o stream, re-escanear *sample rates* no meio da transmissão, garantir a normalização do espectro e realizar a compressão pesada para MP3.
 - **[Rclone](https://rclone.org/):** Usado para a comunicação resiliente e idempotente de CLI com a API do Google Drive sem a necessidade de SDKs complexos.
 - **[Next.js API Routes](https://nextjs.org/):** O backend de roteamento e *proxy* do player lida com as requisições de áudio por *Range Headers*, garantindo a segmentação do buffer para evitar os limites de RAM da plataforma de hospedagem.
+
+## Arquitetura (C4 Model)
+
+O diagrama abaixo ilustra como o sistema está distribuído entre captura (Worker) e distribuição (Web Player):
+
+```mermaid
+C4Container
+title C4 Container Diagram - Ecossistema Itatiaia Gravador
+
+Person(user, "Ouvinte", "Usuário final que escuta as gravações no dia seguinte")
+
+System_Boundary(c1, "Ecossistema Itatiaia") {
+    Container(gha, "Gravador Diário", "GitHub Actions / Bash", "Worker Serverless que captura 4h de áudio, comprime para MP3 e envia para a nuvem.")
+    Container(web, "Player Web", "Next.js / Node.js", "Interface para listar e ouvir os arquivos, atuando como Proxy de baixo consumo de memória.")
+}
+
+System_Ext(radio_api, "Radio Browser API", "Catálogo dinâmico com a URL viva da rádio")
+System_Ext(streaming, "Icecast/BrasilStream", "Servidor fonte da Rádio Itatiaia ao vivo")
+System_Ext(gdrive, "Google Drive", "Cold Storage (Armazenamento remoto dos MP3)")
+
+Rel(user, web, "Escuta gravações", "HTTPS")
+Rel(web, gdrive, "Lê arquivos em Chunks de 2MB (Range)", "Drive API")
+
+Rel(gha, radio_api, "Descobre a URL ativa (Dynamic Discovery)", "HTTPS/JSON")
+Rel(gha, streaming, "Grava o fluxo de áudio", "TCP/HTTP")
+Rel(gha, gdrive, "Upload Idempotente do arquivo MP3", "Rclone")
+```
+
+## Decisões de Engenharia
+
+Para entender os desafios enfrentados (Limites de Memória no Render, Bloqueios de IP, Mudanças de Sample Rate, Espaço em Disco) e como os resolvemos com padrões de software, leia a página dedicada:
+
+👉 **[Registro de Decisões Técnicas (ADR)](docs/DECISOES_TECNICAS.md)**
