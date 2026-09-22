@@ -49,7 +49,7 @@ jobs:
           sudo bash /tmp/install-rclone.sh
           rm -f /tmp/install-rclone.sh
 
-      - name: Gravar e normalizar o stream por 4 horas com Fallback e Discovery
+      - name: Gravar e normalizar o stream por 4 horas com Seguro de Corrida
         run: |
           echo "Buscando URLs dinâmicas da Itatiaia BH no Radio Browser API..."
           API_URLS=$(curl -s "https://all.api.radio-browser.info/json/stations/search?name=Itatiaia&countrycode=BR&hidebroken=true&order=clickcount&reverse=true" \
@@ -67,31 +67,70 @@ jobs:
           echo "Lista final de streams a tentar:"
           printf "%s\n" "${UNIQUE_STREAMS[@]}"
           
-          for URL in "${UNIQUE_STREAMS[@]}"; do
-            echo "----------------------------------------"
-            echo "Tentando conectar em: $URL"
-            ffmpeg -hide_banner -loglevel warning -stats -nostdin -y \
-              -reconnect 1 \
-              -reconnect_streamed 1 \
-              -reconnect_at_eof 1 \
-              -reconnect_on_network_error 1 \
-              -reconnect_on_http_error 408,429,5xx \
-              -reconnect_delay_max 60 \
-              -rw_timeout 30000000 \
-              -fflags +discardcorrupt \
-              -user_agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" -i "$URL" \
-              -t "$RECORD_SECONDS" \
-              -map 0:a:0 -vn -sn -dn \
-              -af "aresample=44100:async=1000:first_pts=0" \
-              -ar 44100 -ac 1 -c:a pcm_s16le \
-              "$RAW_FILE"
+          TOTAL_TARGET=$RECORD_SECONDS
+          ACCUMULATED=0
+          PART_INDEX=1
+          rm -f concat_list.txt
+          
+          while [ "$ACCUMULATED" -lt "$TOTAL_TARGET" ]; do
+            REMAINING=$((TOTAL_TARGET - ACCUMULATED))
+            SUCCESS_ON_THIS_PART=false
+            
+            for URL in "${UNIQUE_STREAMS[@]}"; do
+              PART_FILE="itatiaia_part_${PART_INDEX}.wav"
+              echo "----------------------------------------"
+              echo "[Parte $PART_INDEX] Faltam ${REMAINING}s. Conectando em: $URL"
               
-            if [ -s "$RAW_FILE" ]; then
-              echo "Gravação concluída com sucesso usando $URL"
+              ffmpeg -hide_banner -loglevel warning -stats -nostdin -y \
+                -reconnect 1 \
+                -reconnect_streamed 1 \
+                -reconnect_at_eof 1 \
+                -reconnect_on_network_error 1 \
+                -reconnect_on_http_error 408,429,5xx \
+                -reconnect_delay_max 60 \
+                -rw_timeout 30000000 \
+                -fflags +discardcorrupt \
+                -user_agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" -i "$URL" \
+                -t "$REMAINING" \
+                -map 0:a:0 -vn -sn -dn \
+                -af "aresample=44100:async=1000:first_pts=0" \
+                -ar 44100 -ac 1 -c:a pcm_s16le \
+                "$PART_FILE"
+                
+              if [ -s "$PART_FILE" ]; then
+                PART_DURATION=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$PART_FILE" | awk '{print int($1)}')
+                
+                if [ -n "$PART_DURATION" ] && [ "$PART_DURATION" -gt 0 ]; then
+                  echo "Sucesso parcial: Gravados ${PART_DURATION}s."
+                  echo "file '$PART_FILE'" >> concat_list.txt
+                  
+                  ACCUMULATED=$((ACCUMULATED + PART_DURATION))
+                  PART_INDEX=$((PART_INDEX + 1))
+                  SUCCESS_ON_THIS_PART=true
+                  break # Quebra o for (lista de URLs), volta para o while para calcular o novo REMAINING
+                else
+                  rm -f "$PART_FILE"
+                fi
+              else
+                rm -f "$PART_FILE"
+              fi
+              echo "URL falhou. Tentando próxima do fallback..."
+            done
+            
+            if [ "$SUCCESS_ON_THIS_PART" = false ]; then
+              echo "ALERTA: Todas as URLs falharam ou estão bloqueadas. Abortando com o que temos ($ACCUMULATED segundos gravados)."
               break
             fi
-            echo "Falha ao gravar com $URL. Tentando próximo stream da lista de fallback..."
+            sleep 2
           done
+          
+          echo "Processo de captura concluído. Unindo partes..."
+          if [ -f concat_list.txt ]; then
+            # Como forcamos -ar 44100 -ac 1 -c:a pcm_s16le em todas as partes, o concat é perfeito e seguro.
+            ffmpeg -hide_banner -loglevel warning -y -f concat -safe 0 -i concat_list.txt -c copy "$RAW_FILE"
+          else
+            echo "Nenhum áudio foi capturado."
+          fi
           
           test -s "$RAW_FILE"
 
@@ -154,4 +193,4 @@ jobs:
 
       - name: Limpar arquivos temporários
         if: always()
-        run: rm -f "$RAW_FILE" "${COMPRESSED_FILE}.part" "$COMPRESSED_FILE"
+        run: rm -f "$RAW_FILE" itatiaia_part_*.wav concat_list.txt "${COMPRESSED_FILE}.part" "$COMPRESSED_FILE"
