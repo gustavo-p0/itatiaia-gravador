@@ -78,7 +78,7 @@ Isso vai disparar uma gravação imediata (mas vai gravar 4h, então aguarde ou 
 
 Todo dia, ao acordar, você terá um arquivo `itatiaia_YYYY-MM-DD.mp3` na pasta **Itatiaia** do seu Google Drive, pronto para ouvir.
 
-A gravação é normalizada para **44,1 kHz, mono** e depois comprimida como **MP3 a 48 kbit/s**. Uma gravação de 4 horas ocupa aproximadamente **86 MB**. A normalização também evita erros de reprodução quando a rádio muda o sample rate do stream entre 48 kHz e 44,1 kHz.
+A gravação é normalizada para **44,1 kHz, mono** e depois comprimida como **MP3 a 96 kbit/s**. Uma gravação de 4 horas ocupa aproximadamente **173 MB**. A normalização também evita erros de reprodução quando a rádio muda o sample rate do stream entre 48 kHz e 44,1 kHz.
 
 O arquivo WAV intermediário existe somente durante o workflow e é removido antes do upload. O upload envia apenas um arquivo por vez e usa buffers pequenos para limitar o uso de memória.
 

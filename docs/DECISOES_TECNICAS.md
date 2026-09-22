@@ -14,7 +14,7 @@ Este documento centraliza as principais decisões de engenharia de software toma
 
 ## 3. Compressão MP3 em Passos Separados
 - **Contexto:** O objetivo original era fazer `-c copy` (Stream Copy) do AAC original para salvar CPU, mas os arquivos ocupavam muito espaço no Google Drive, e o stream da rádio costuma ter variações bruscas de configuração no meio da madrugada (ex: `Sample Rate: 48000 vs 44100`), quebrando decoders e o próprio FFmpeg.
-- **Decisão:** Extrair o áudio para um formato cru e robusto (`pcm_s16le` - WAV), forçar uma normalização de hardware (`-ar 44100 -ac 1`), e então realizar a compressão LAME MP3 num bitrate baixo (`48k`).
+- **Decisão:** Extrair o áudio para um formato cru e robusto (`pcm_s16le` - WAV), forçar uma normalização de hardware (`-ar 44100 -ac 1`), e então realizar a compressão LAME MP3 em `96k` (qualidade de fala sem cortes audíveis; ~173 MB por 4h).
 - **Consequência:** Uso drástico de redução de armazenamento (arquivos muito menores) e imunidade total a mudanças de Sample Rate no meio do stream (Midstream Configuration Change).
 
 ## 4. IP Bans e Camuflagem no GitHub Actions
@@ -33,3 +33,9 @@ Este documento centraliza as principais decisões de engenharia de software toma
 - **Contexto:** Se uma URL ativa caísse definitivamente no meio da madrugada (ex: na 2ª hora de gravação), o FFmpeg salvava o que conseguiu e abortava. Para ter 4 horas garantidas, seria necessário retomar a gravação na próxima URL de fallback exatamente de onde parou.
 - **Decisão:** Criamos um controlador de estado no Bash (`while loop`) associado ao `ffprobe` e ao *Demuxer Concat* do FFmpeg.
 - **Consequência:** O script impõe uma meta rigorosa de 14400 segundos. Se o FFmpeg abortar prematuramente, o `ffprobe` afere quantos segundos foram salvos (`itatiaia_part_X.wav`). O controlador subtrai isso da meta total e retoma a gravação imediatamente com o tempo restante na próxima URL de fallback. Ao final da corrida, o *Demuxer Concat* funde todas as partes. Como o áudio bruto (`pcm_s16le`) tem parâmetros rigorosamente fixados (44100Hz, Mono), a fusão dos arquivos ocorre sem cortes ou corrupções audíveis.
+
+## 7. Remoção do Filtro Assíncrono de Resample (Causa Raiz do "Engasgo")
+- **Contexto:** A gravação apresentava microcortes periódicos ("áudio engasgando", tipo "bom di rad do brasi") mesmo com o stream direto fluido. O workflow havia ganhado o filtro `-af "aresample=44100:async=1000:first_pts=0"` para sanar erros de troca de sample rate no meio do stream.
+- **Evidência:** Na run `35683621444`, **324 avisos `Non-monotonic DTS`** no mesmo segundo (~30s após o início), com o DTS pulando de `1320960` (= 30s × 44100 Hz) para `0`. O `first_pts=0` zerava a timeline e o `async=1000` "corrigia" a discontinuidade esticando, encurtando, inserindo ou removendo amostras — alterações audíveis como engasgo. Testes controlados (mesma base AAC com e sem filtro) mostraram que o filtro era transparente quando o timeline era limpo; o bug só se manifestava nas condições de timestamp do Actions.
+- **Decisão:** Remover a linha `-af` inteira, mantendo apenas `-ar 44100 -ac 1 -c:a pcm_s16le`. A normalização de sample rate midstream (`48000 vs 44100`) continua garantida pelas opções `-ar`/`-ac`, que inserem o resampler padrão sem compensação temporal assíncrona. Em separado, o bitrate do MP3 subiu de `48k` para `96k` para recuperar qualidade de fala (dois problemas distintos: fluidez × fidelidade).
+- **Consequência:** Saída WAV/MP3 contínua, sem inserções/remoções de amostras por correção de timestamp. Regressão de qualidade observada após o commit `d688257` deve desaparecer; mantém-se imunidade a mudanças de configuração midstream.

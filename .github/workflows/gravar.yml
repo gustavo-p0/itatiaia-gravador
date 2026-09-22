@@ -7,7 +7,7 @@ on:
 
 env:
   RECORD_SECONDS: "14400"
-  AUDIO_BITRATE: 48k
+  AUDIO_BITRATE: 96k
 
 jobs:
   gravar:
@@ -93,7 +93,6 @@ jobs:
                 -user_agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" -i "$URL" \
                 -t "$REMAINING" \
                 -map 0:a:0 -vn -sn -dn \
-                -af "aresample=44100:async=1000:first_pts=0" \
                 -ar 44100 -ac 1 -c:a pcm_s16le \
                 "$PART_FILE"
                 
