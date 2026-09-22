@@ -78,6 +78,10 @@ Isso vai disparar uma gravação imediata (mas vai gravar 4h, então aguarde ou 
 
 Todo dia, ao acordar, você terá um arquivo `itatiaia_YYYY-MM-DD.mp3` na pasta **Itatiaia** do seu Google Drive, pronto para ouvir.
 
+A gravação é normalizada para **44,1 kHz, mono** e depois comprimida como **MP3 a 48 kbit/s**. Uma gravação de 4 horas ocupa aproximadamente **86 MB**. A normalização também evita erros de reprodução quando a rádio muda o sample rate do stream entre 48 kHz e 44,1 kHz.
+
+O arquivo WAV intermediário existe somente durante o workflow e é removido antes do upload. O upload envia apenas um arquivo por vez e usa buffers pequenos para limitar o uso de memória.
+
 ---
 
 ## Observações
@@ -87,3 +91,14 @@ Todo dia, ao acordar, você terá um arquivo `itatiaia_YYYY-MM-DD.mp3` na pasta 
 - Se quiser gravar só alguns dias da semana, edite o cron em `gravar.yml`:
   - Seg a Sex: `0 3 * * 1-5`
   - Só fim de semana: `0 3 * * 6,0`
+
+## Resiliência a falhas de rede
+
+O pipeline trata a conexão com a rádio e o Google Drive como sujeita a **partições de rede**. Na prática, seguindo o raciocínio do teorema CAP, ele prioriza disponibilidade durante falhas transitórias e recupera a consistência por convergência:
+
+- FFmpeg reconecta em EOF, erros TCP/TLS e respostas HTTP `408`, `429` e `5xx`, usando backoff exponencial limitado a 60 segundos.
+- Instalação de pacotes e rclone possui tentativas adicionais com espera progressiva.
+- O upload usa os retries internos do rclone e até 6 tentativas externas com backoff de 10 a 120 segundos.
+- `copyto` grava sempre no mesmo caminho diário e `--checksum` evita duplicação ou reenvio desnecessário após uma resposta perdida. Assim, repetir o job é idempotente quanto ao nome do arquivo no Drive.
+
+Falhas permanentes continuam encerrando o job com erro em vez de produzir ou publicar silenciosamente um arquivo incompleto.

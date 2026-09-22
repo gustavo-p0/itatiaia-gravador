@@ -1,29 +1,91 @@
 name: Gravar Rádio Itatiaia
+
 on:
   workflow_dispatch:
   repository_dispatch:
     types: [gravar]
+
+env:
+  STREAM_URL: https://8903.brasilstream.com.br/stream
+  RECORD_SECONDS: "14400"
+  AUDIO_BITRATE: 48k
+
 jobs:
   gravar:
     runs-on: ubuntu-latest
-    timeout-minutes: 260
+    timeout-minutes: 330
     steps:
-      - name: Instalar ffmpeg
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --fix-missing ffmpeg
-
-      - name: Gravar stream por 4 horas
+      - name: Preparar nomes dos arquivos
         run: |
           DATA=$(TZ="America/Sao_Paulo" date +%Y-%m-%d)
-          ffmpeg \
-            -i "https://8903.brasilstream.com.br/stream" \
-            -t 14400 \
-            -c copy \
-            "itatiaia_${DATA}.aac"
+          echo "RAW_FILE=itatiaia_${DATA}.wav" >> "$GITHUB_ENV"
+          echo "COMPRESSED_FILE=itatiaia_${DATA}.mp3" >> "$GITHUB_ENV"
 
-      - name: Instalar rclone
-        run: curl https://rclone.org/install.sh | sudo bash
+      - name: Instalar ffmpeg e rclone com retry
+        run: |
+          retry_with_backoff() {
+            local max_attempts="$1"
+            shift
+            local attempt=1
+            local delay=5
+            until "$@"; do
+              if (( attempt >= max_attempts )); then
+                echo "Falha definitiva após $attempt tentativas: $*" >&2
+                return 1
+              fi
+              echo "Tentativa $attempt falhou; aguardando ${delay}s..." >&2
+              sleep "$delay"
+              attempt=$((attempt + 1))
+              delay=$((delay * 2))
+              (( delay > 60 )) && delay=60
+            done
+          }
+
+          retry_with_backoff 5 sudo apt-get -o Acquire::Retries=3 update
+          retry_with_backoff 5 sudo apt-get -o Acquire::Retries=3 install -y --fix-missing ffmpeg
+          curl --fail --location \
+            --retry 6 --retry-all-errors --retry-max-time 180 \
+            --output /tmp/install-rclone.sh \
+            https://rclone.org/install.sh
+          sudo bash /tmp/install-rclone.sh
+          rm -f /tmp/install-rclone.sh
+
+      - name: Gravar e normalizar o stream por 4 horas
+        run: |
+          # O protocolo HTTP do FFmpeg usa backoff exponencial até o teto abaixo.
+          # A saída PCM fixa impede mudanças de 48 kHz para 44,1 kHz no arquivo.
+          ffmpeg -hide_banner -loglevel warning -stats -nostdin -y \
+            -reconnect 1 \
+            -reconnect_streamed 1 \
+            -reconnect_at_eof 1 \
+            -reconnect_on_network_error 1 \
+            -reconnect_on_http_error 408,429,5xx \
+            -reconnect_delay_max 60 \
+            -rw_timeout 30000000 \
+            -fflags +discardcorrupt \
+            -i "$STREAM_URL" \
+            -t "$RECORD_SECONDS" \
+            -map 0:a:0 -vn -sn -dn \
+            -af "aresample=44100:async=1000:first_pts=0" \
+            -ar 44100 -ac 1 -c:a pcm_s16le \
+            "$RAW_FILE"
+          test -s "$RAW_FILE"
+
+      - name: Comprimir gravação para MP3
+        run: |
+          PART_FILE="${COMPRESSED_FILE}.part"
+          trap 'rm -f "$PART_FILE"' EXIT
+          ffmpeg -hide_banner -loglevel warning -stats -nostdin -y \
+            -i "$RAW_FILE" \
+            -map 0:a:0 -vn -sn -dn \
+            -ar 44100 -ac 1 \
+            -c:a libmp3lame -b:a "$AUDIO_BITRATE" \
+            -map_metadata -1 -write_xing 1 -threads 1 \
+            -f mp3 "$PART_FILE"
+          test -s "$PART_FILE"
+          mv "$PART_FILE" "$COMPRESSED_FILE"
+          rm -f "$RAW_FILE"
+          trap - EXIT
 
       - name: Autenticar no Google Drive via rclone
         run: |
@@ -34,9 +96,38 @@ jobs:
           scope = drive
           token = ${{ secrets.GDRIVE_TOKEN }}
           EOF
+          chmod 600 ~/.config/rclone/rclone.conf
 
-      - name: Fazer upload para o Google Drive
+      - name: Fazer upload idempotente com retry
         run: |
-          DATA=$(TZ="America/Sao_Paulo" date +%Y-%m-%d)
-          rclone copy "itatiaia_${DATA}.aac" "gdrive:Itatiaia" --drive-use-trash=false
-          echo "Upload concluído: itatiaia_${DATA}.aac"
+          upload_once() {
+            rclone copyto "$COMPRESSED_FILE" "gdrive:Itatiaia/$COMPRESSED_FILE" \
+              --checksum \
+              --transfers 1 \
+              --checkers 1 \
+              --buffer-size 4M \
+              --drive-chunk-size 8M \
+              --retries 3 \
+              --low-level-retries 10 \
+              --retries-sleep 5s \
+              --stats 30s
+          }
+
+          attempt=1
+          delay=10
+          until upload_once; do
+            if (( attempt >= 6 )); then
+              echo "Upload falhou após $attempt tentativas." >&2
+              exit 1
+            fi
+            echo "Upload $attempt falhou; nova tentativa em ${delay}s..." >&2
+            sleep "$delay"
+            attempt=$((attempt + 1))
+            delay=$((delay * 2))
+            (( delay > 120 )) && delay=120
+          done
+          echo "Upload concluído: $COMPRESSED_FILE"
+
+      - name: Limpar arquivos temporários
+        if: always()
+        run: rm -f "$RAW_FILE" "${COMPRESSED_FILE}.part" "$COMPRESSED_FILE"
