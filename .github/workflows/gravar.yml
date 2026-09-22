@@ -63,7 +63,7 @@ jobs:
             -reconnect_delay_max 60 \
             -rw_timeout 30000000 \
             -fflags +discardcorrupt \
-            -i "$STREAM_URL" \
+            -user_agent "Mozilla/5.0" -i "$STREAM_URL" \
             -t "$RECORD_SECONDS" \
             -map 0:a:0 -vn -sn -dn \
             -af "aresample=44100:async=1000:first_pts=0" \
