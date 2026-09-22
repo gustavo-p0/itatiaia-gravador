@@ -6,7 +6,6 @@ on:
     types: [gravar]
 
 env:
-  STREAM_URL: https://8903.brasilstream.com.br/stream
   RECORD_SECONDS: "14400"
   AUDIO_BITRATE: 48k
 
@@ -50,25 +49,39 @@ jobs:
           sudo bash /tmp/install-rclone.sh
           rm -f /tmp/install-rclone.sh
 
-      - name: Gravar e normalizar o stream por 4 horas
+      - name: Gravar e normalizar o stream por 4 horas com Fallback
         run: |
-          # O protocolo HTTP do FFmpeg usa backoff exponencial até o teto abaixo.
-          # A saída PCM fixa impede mudanças de 48 kHz para 44,1 kHz no arquivo.
-          ffmpeg -hide_banner -loglevel warning -stats -nostdin -y \
-            -reconnect 1 \
-            -reconnect_streamed 1 \
-            -reconnect_at_eof 1 \
-            -reconnect_on_network_error 1 \
-            -reconnect_on_http_error 408,429,5xx \
-            -reconnect_delay_max 60 \
-            -rw_timeout 30000000 \
-            -fflags +discardcorrupt \
-            -user_agent "Mozilla/5.0" -i "$STREAM_URL" \
-            -t "$RECORD_SECONDS" \
-            -map 0:a:0 -vn -sn -dn \
-            -af "aresample=44100:async=1000:first_pts=0" \
-            -ar 44100 -ac 1 -c:a pcm_s16le \
-            "$RAW_FILE"
+          STREAMS=(
+            "https://8903.brasilstream.com.br/stream"
+            "http://8903.brasilstream.com.br:8903/stream"
+            "https://8903.brasilstream.com.br/stream?ext=.mp3"
+          )
+          
+          for URL in "${STREAMS[@]}"; do
+            echo "Tentando conectar em: $URL"
+            ffmpeg -hide_banner -loglevel warning -stats -nostdin -y \
+              -reconnect 1 \
+              -reconnect_streamed 1 \
+              -reconnect_at_eof 1 \
+              -reconnect_on_network_error 1 \
+              -reconnect_on_http_error 408,429,5xx \
+              -reconnect_delay_max 60 \
+              -rw_timeout 30000000 \
+              -fflags +discardcorrupt \
+              -user_agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" -i "$URL" \
+              -t "$RECORD_SECONDS" \
+              -map 0:a:0 -vn -sn -dn \
+              -af "aresample=44100:async=1000:first_pts=0" \
+              -ar 44100 -ac 1 -c:a pcm_s16le \
+              "$RAW_FILE"
+              
+            if [ -s "$RAW_FILE" ]; then
+              echo "Gravação concluída com sucesso usando $URL"
+              break
+            fi
+            echo "Falha ao gravar com $URL. Tentando próximo stream da lista de fallback..."
+          done
+          
           test -s "$RAW_FILE"
 
       - name: Comprimir gravação para MP3
