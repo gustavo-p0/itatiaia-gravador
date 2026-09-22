@@ -28,3 +28,8 @@ Este documento centraliza as principais decisões de engenharia de software toma
 - **Consequência:** 
   1. FFmpeg programado para loops agressivos de re-conexão (`-reconnect_delay_max 60`).
   2. Rclone configurado com `--checksum` (Idempotência). Se o workflow cair durante o upload e for reiniciado, ele não fará upload duplo nem sobrescreverá caso o arquivo inteiro já exista.
+
+## 6. Seguro de Corrida (Failover Contínuo e Seamless Stitching)
+- **Contexto:** Se uma URL ativa caísse definitivamente no meio da madrugada (ex: na 2ª hora de gravação), o FFmpeg salvava o que conseguiu e abortava. Para ter 4 horas garantidas, seria necessário retomar a gravação na próxima URL de fallback exatamente de onde parou.
+- **Decisão:** Criamos um controlador de estado no Bash (`while loop`) associado ao `ffprobe` e ao *Demuxer Concat* do FFmpeg.
+- **Consequência:** O script impõe uma meta rigorosa de 14400 segundos. Se o FFmpeg abortar prematuramente, o `ffprobe` afere quantos segundos foram salvos (`itatiaia_part_X.wav`). O controlador subtrai isso da meta total e retoma a gravação imediatamente com o tempo restante na próxima URL de fallback. Ao final da corrida, o *Demuxer Concat* funde todas as partes. Como o áudio bruto (`pcm_s16le`) tem parâmetros rigorosamente fixados (44100Hz, Mono), a fusão dos arquivos ocorre sem cortes ou corrupções audíveis.

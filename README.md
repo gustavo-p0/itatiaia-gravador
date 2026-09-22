@@ -96,6 +96,7 @@ O arquivo WAV intermediário existe somente durante o workflow e é removido ant
 
 O pipeline trata a conexão com a rádio e o Google Drive como sujeita a **partições de rede**. Na prática, seguindo o raciocínio do teorema CAP, ele prioriza disponibilidade durante falhas transitórias e recupera a consistência por convergência:
 
+- **Failover em Movimento (Mid-Race Insurance):** Se um servidor cair definitivamente no meio da madrugada, o script inspeciona os segundos gravados (`ffprobe`), pula dinamicamente para uma URL reserva (Dynamic Discovery), capta o tempo restante e "solda" os áudios de forma imperceptível no final.
 - FFmpeg reconecta em EOF, erros TCP/TLS e respostas HTTP `408`, `429` e `5xx`, usando backoff exponencial limitado a 60 segundos.
 - Instalação de pacotes e rclone possui tentativas adicionais com espera progressiva.
 - O upload usa os retries internos do rclone e até 6 tentativas externas com backoff de 10 a 120 segundos.
