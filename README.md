@@ -102,3 +102,12 @@ O pipeline trata a conexão com a rádio e o Google Drive como sujeita a **parti
 - `copyto` grava sempre no mesmo caminho diário e `--checksum` evita duplicação ou reenvio desnecessário após uma resposta perdida. Assim, repetir o job é idempotente quanto ao nome do arquivo no Drive.
 
 Falhas permanentes continuam encerrando o job com erro em vez de produzir ou publicar silenciosamente um arquivo incompleto.
+
+## Fontes & Tecnologias (Sources)
+
+O projeto foi construído e estabilizado graças a várias ferramentas open-source e APIs públicas:
+
+- **[Radio Browser API](https://www.radio-browser.info/):** Utilizado para Descoberta Dinâmica de Serviços (Dynamic Service Discovery). Garante que a URL da rádio seja sempre a mais atual, atuando como o fallback principal caso o link estático caia ou mude de IP.
+- **[FFmpeg](https://ffmpeg.org/):** Motor de áudio responsável por conectar no *Icecast*, baixar o stream, re-escanear *sample rates* no meio da transmissão, garantir a normalização do espectro e realizar a compressão pesada para MP3.
+- **[Rclone](https://rclone.org/):** Usado para a comunicação resiliente e idempotente de CLI com a API do Google Drive sem a necessidade de SDKs complexos.
+- **[Next.js API Routes](https://nextjs.org/):** O backend de roteamento e *proxy* do player lida com as requisições de áudio por *Range Headers*, garantindo a segmentação do buffer para evitar os limites de RAM da plataforma de hospedagem.
