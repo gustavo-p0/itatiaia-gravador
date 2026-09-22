@@ -113,31 +113,36 @@ O projeto foi construído e estabilizado graças a várias ferramentas open-sour
 - **[Rclone](https://rclone.org/):** Usado para a comunicação resiliente e idempotente de CLI com a API do Google Drive sem a necessidade de SDKs complexos.
 - **[Next.js API Routes](https://nextjs.org/):** O backend de roteamento e *proxy* do player lida com as requisições de áudio por *Range Headers*, garantindo a segmentação do buffer para evitar os limites de RAM da plataforma de hospedagem.
 
-## Arquitetura (C4 Model)
+## Arquitetura (C4 — Nível 2: Containers)
 
-O diagrama abaixo ilustra como o sistema está distribuído entre captura (Worker) e distribuição (Web Player):
+Diagrama de containers: expõe as unidades internas do sistema (orquestrador, pipeline de mídia, upload e player) e suas interações com sistemas externos. A ordem de declaração dos nós foi otimizada por enumeração exhaustiva de permutações (Sugiyama) para eliminar cruzamentos entre arestas.
 
 ```mermaid
+%%{init: {'theme': 'default', 'themeVariables': {'darkMode': false, 'fontFamily': 'Helvetica'}}}%%
 C4Container
-title C4 Container Diagram - Ecossistema Itatiaia Gravador
+title C4 Nível 2 (Container) — Ecossistema Itatiaia Gravador
 
-Person(user, "Ouvinte", "Usuário final que escuta as gravações no dia seguinte")
+Person_Ext(user, "Ouvinte", "Escuta as gravações")
+System_Ext(gdrive, "Google Drive", "Armazenamento MP3")
+System_Ext(radio_api, "Radio Browser API", "Descoberta dinâmica")
+System_Ext(icecast, "Icecast / BrasilStream", "Stream ao vivo")
 
-System_Boundary(c1, "Ecossistema Itatiaia") {
-    Container(gha, "Gravador Diário", "GitHub Actions / Bash", "Worker Serverless que captura 4h de áudio, comprime para MP3 e envia para a nuvem.")
-    Container(web, "Player Web", "Next.js / Node.js", "Interface para listar e ouvir os arquivos, atuando como Proxy de baixo consumo de memória.")
+System_Boundary(itatiaia, "Sistema Itatiaia Gravador") {
+    Container(webapp, "Player Web", "Next.js", "UI + proxy de áudio")
+    Container(rc, "Uploader", "rclone", "Upload idempotente")
+    Container(orch, "Orquestrador", "Bash", "Fallback e retries")
+    Container(ffm, "Pipeline FFmpeg", "ffmpeg", "Captura e encode")
 }
 
-System_Ext(radio_api, "Radio Browser API", "Catálogo dinâmico com a URL viva da rádio")
-System_Ext(streaming, "Icecast/BrasilStream", "Servidor fonte da Rádio Itatiaia ao vivo")
-System_Ext(gdrive, "Google Drive", "Cold Storage (Armazenamento remoto dos MP3)")
+Rel_D(user, webapp, "Ouve", "HTTPS")
+Rel_U(webapp, gdrive, "Lê 2 MB", "Drive API")
+Rel_U(rc, gdrive, "Envia MP3", "HTTPS")
+Rel_U(orch, radio_api, "Descobre URL", "HTTPS")
+Rel_U(ffm, icecast, "Captura", "TCP")
+Rel_L(orch, rc, "Upload")
+Rel_R(orch, ffm, "Executa")
 
-Rel(user, web, "Escuta gravações", "HTTPS")
-Rel(web, gdrive, "Lê arquivos em Chunks de 2MB (Range)", "Drive API")
-
-Rel(gha, radio_api, "Descobre a URL ativa (Dynamic Discovery)", "HTTPS/JSON")
-Rel(gha, streaming, "Grava o fluxo de áudio", "TCP/HTTP")
-Rel(gha, gdrive, "Upload Idempotente do arquivo MP3", "Rclone")
+UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="1")
 ```
 
 ## Decisões de Engenharia
