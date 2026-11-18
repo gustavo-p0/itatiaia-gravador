@@ -5,3 +5,16 @@ __pycache__/
 *.pyc
 .venv/
 .superpowers/
+
+# Arquivos locais de agentes de IA, skills e ferramentas MCP
+docs/superpowers/
+docs/agents/
+docs/skills/
+**/CLAUDE.md
+**/GEMINI.md
+**/SKILL.md
+**/.claude/
+**/.codex/
+**/.agents/
+**/.mcp/
+**/.mcp.json

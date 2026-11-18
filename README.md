@@ -94,7 +94,7 @@ Após reunir as partes WAV, mas **antes de comprimir para MP3**, um pipeline Pyt
 
 O recorte máximo aceito automaticamente é de uma hora. Essa restrição é intencional: correspondências muito tardias poderiam remover grande parte do programa em caso de falso positivo; nesses casos, o original é mantido.
 
-Para validar o pipeline localmente, instale FFmpeg/ffprobe e Python 3.12, execute `python3 -m unittest discover -s processing/tests -v` e consulte `docs/superpowers/specs/2026-11-18-audio-intro-postprocessing-design.md`. O motor de fingerprint depende das bibliotecas listadas em `processing/requirements.txt` e da revisão do `audfprint` acima.
+Para validar o pipeline localmente, instale FFmpeg/ffprobe e Python 3.12 e execute `python3 -m unittest discover -s processing/tests -v`. As decisões de arquitetura estão registradas em `docs/DECISOES_TECNICAS.md`. O motor de fingerprint depende das bibliotecas listadas em `processing/requirements.txt` e da revisão do `audfprint` acima.
 
 ---
 
