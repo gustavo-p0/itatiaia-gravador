@@ -10,7 +10,6 @@ __pycache__/
 docs/superpowers/
 docs/agents/
 docs/skills/
-**/AGENTS.md
 **/CLAUDE.md
 **/GEMINI.md
 **/SKILL.md
