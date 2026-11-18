@@ -1,0 +1,6 @@
+# Tested together with audfprint commit cb03ba99feafd41b8874307f0f4e808a6ce34362.
+numpy==2.3.5
+scipy==1.17.0
+docopt==0.6.2
+joblib==1.5.3
+psutil==7.2.2

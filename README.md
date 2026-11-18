@@ -76,11 +76,25 @@ Isso vai disparar uma gravação imediata (mas vai gravar 4h, então aguarde ou 
 
 ## Resultado
 
-Todo dia, ao acordar, você terá um arquivo `itatiaia_YYYY-MM-DD.mp3` na pasta **Itatiaia** do seu Google Drive, pronto para ouvir.
+Ao concluir a execução, você terá um arquivo `itatiaia_YYYY-MM-DD.mp3` na pasta **Itatiaia** do seu Google Drive, pronto para ouvir. O workflow é acionado manualmente (`workflow_dispatch`) ou por um disparador externo (`repository_dispatch`); não há cron declarado neste repositório.
 
 A gravação é normalizada para **44,1 kHz, mono** e depois comprimida como **MP3 a 96 kbit/s**. Uma gravação de 4 horas ocupa aproximadamente **173 MB**. A normalização também evita erros de reprodução quando a rádio muda o sample rate do stream entre 48 kHz e 44,1 kHz.
 
 O arquivo WAV intermediário existe somente durante o workflow e é removido antes do upload. O upload envia apenas um arquivo por vez e usa buffers pequenos para limitar o uso de memória.
+
+### Pós-processamento da abertura
+
+Após reunir as partes WAV, mas **antes de comprimir para MP3**, um pipeline Python tenta localizar a abertura do *Dona da Noite* usando um fingerprint acústico de aproximadamente 41,66 segundos. O reconhecimento utiliza `audfprint` (MIT) fixado no commit `cb03ba99feafd41b8874307f0f4e808a6ce34362`, percorrendo a gravação em blocos de 15 minutos com 60 segundos de sobreposição. Assim, a busca não precisa manter as quatro horas de áudio em memória.
+
+- Quando o reconhecimento é confiável, o pipeline preserva a vinheta e remove apenas o áudio anterior a ela, com uma margem de segurança de 0,5 segundo.
+- Quando a abertura não é encontrada, a correspondência é incerta ou o processamento falha, **o arquivo original, sem cortes, é publicado normalmente**. Não são criados alertas nem notificações de detecção.
+- Uma origem ausente ou corrompida continua impedindo a publicação; falhas de codificação MP3/upload também permanecem bloqueantes.
+- O WAV consolidado jamais é sobrescrito: a etapa usa arquivo temporário, valida a duração e produz um manifesto JSON que escolhe a entrada para a compressão.
+- O repositório contém somente `processing/references/dona_da_noite_intro.pklz`, um fingerprint derivado da abertura, e **não** o áudio da emissora.
+
+O recorte máximo aceito automaticamente é de uma hora. Essa restrição é intencional: correspondências muito tardias poderiam remover grande parte do programa em caso de falso positivo; nesses casos, o original é mantido.
+
+Para validar o pipeline localmente, instale FFmpeg/ffprobe e Python 3.12, execute `python3 -m unittest discover -s processing/tests -v` e consulte `docs/superpowers/specs/2026-11-18-audio-intro-postprocessing-design.md`. O motor de fingerprint depende das bibliotecas listadas em `processing/requirements.txt` e da revisão do `audfprint` acima.
 
 ---
 
@@ -111,6 +125,7 @@ O projeto foi construído e estabilizado graças a várias ferramentas open-sour
 - **[Radio Browser API](https://www.radio-browser.info/):** Utilizado para Descoberta Dinâmica de Serviços (Dynamic Service Discovery). Garante que a URL da rádio seja sempre a mais atual, atuando como o fallback principal caso o link estático caia ou mude de IP.
 - **[FFmpeg](https://ffmpeg.org/):** Motor de áudio responsável por conectar no *Icecast*, baixar o stream, re-escanear *sample rates* no meio da transmissão, garantir a normalização do espectro e realizar a compressão pesada para MP3.
 - **[Rclone](https://rclone.org/):** Usado para a comunicação resiliente e idempotente de CLI com a API do Google Drive sem a necessidade de SDKs complexos.
+- **[audfprint](https://github.com/dpwe/audfprint):** Reconhecimento local da assinatura acústica de abertura, sem API externa de IA nem transcrição de voz.
 - **[Next.js API Routes](https://nextjs.org/):** O backend de roteamento e *proxy* do player lida com as requisições de áudio por *Range Headers*, garantindo a segmentação do buffer para evitar os limites de RAM da plataforma de hospedagem.
 
 ## Arquitetura (C4 — Nível 2: Containers)
@@ -132,6 +147,7 @@ System_Boundary(itatiaia, "Sistema Itatiaia Gravador") {
     Container(rc, "Uploader", "rclone", "Upload idempotente")
     Container(orch, "Orquestrador", "Bash", "Fallback e retries")
     Container(ffm, "Pipeline FFmpeg", "ffmpeg", "Captura e encode")
+    Container(postproc, "Pós-processador", "Python + audfprint", "Detecta abertura e corta prefixo com fail-open")
 }
 
 Rel_D(user, webapp, "Ouve", "HTTPS")
@@ -141,6 +157,8 @@ Rel_U(orch, radio_api, "Descobre URL", "HTTPS")
 Rel_U(ffm, icecast, "Captura", "TCP")
 Rel_L(orch, rc, "Upload")
 Rel_R(orch, ffm, "Executa")
+Rel_D(orch, postproc, "Processa WAV")
+Rel_R(postproc, ffm, "Usa FFmpeg")
 
 UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="1")
 ```

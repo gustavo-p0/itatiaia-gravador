@@ -9,11 +9,18 @@ env:
   RECORD_SECONDS: "14400"
   AUDIO_BITRATE: 96k
 
+concurrency:
+  group: itatiaia-gravar
+  cancel-in-progress: false
+
 jobs:
   gravar:
     runs-on: ubuntu-latest
     timeout-minutes: 330
     steps:
+      - name: Obter arquivos do pipeline
+        uses: actions/checkout@v4
+
       - name: Preparar nomes dos arquivos
         run: |
           DATA=$(TZ="America/Sao_Paulo" date +%Y-%m-%d)
@@ -133,12 +140,31 @@ jobs:
           
           test -s "$RAW_FILE"
 
+      - name: Preparar detector de abertura (opcional)
+        run: |
+          DETECTOR_ENV="$RUNNER_TEMP/itatiaia-audio-venv"
+          DETECTOR_SOURCE="$RUNNER_TEMP/itatiaia-audfprint"
+          if python3 -m venv "$DETECTOR_ENV" && \
+             "$DETECTOR_ENV/bin/python" -m pip install -r processing/requirements.txt && \
+             git clone --quiet https://github.com/dpwe/audfprint.git "$DETECTOR_SOURCE" && \
+             git -C "$DETECTOR_SOURCE" checkout --quiet cb03ba99feafd41b8874307f0f4e808a6ce34362; then
+            echo "POSTPROCESS_PYTHON=$DETECTOR_ENV/bin/python" >> "$GITHUB_ENV"
+            echo "AUDPRINT_SCRIPT=$DETECTOR_SOURCE/audfprint.py" >> "$GITHUB_ENV"
+          else
+            echo "Detector indisponível; a gravação original seguirá para publicação."
+          fi
+
+      - name: Pós-processar abertura ou preservar a gravação original
+        run: |
+          bash scripts/postprocess-before-upload.sh \
+            "$RAW_FILE" "${RAW_FILE%.wav}.processed.wav" "postprocessing.json"
+
       - name: Comprimir gravação para MP3
         run: |
           PART_FILE="${COMPRESSED_FILE}.part"
           trap 'rm -f "$PART_FILE"' EXIT
           ffmpeg -hide_banner -loglevel warning -stats -nostdin -y \
-            -i "$RAW_FILE" \
+            -i "$AUDIO_SOURCE" \
             -map 0:a:0 -vn -sn -dn \
             -ar 44100 -ac 1 \
             -c:a libmp3lame -b:a "$AUDIO_BITRATE" \
@@ -192,4 +218,4 @@ jobs:
 
       - name: Limpar arquivos temporários
         if: always()
-        run: rm -f "$RAW_FILE" itatiaia_part_*.wav concat_list.txt "${COMPRESSED_FILE}.part" "$COMPRESSED_FILE"
+        run: rm -f "$RAW_FILE" "${RAW_FILE%.wav}.processed.wav" postprocessing.json itatiaia_part_*.wav concat_list.txt "${COMPRESSED_FILE}.part" "$COMPRESSED_FILE"
